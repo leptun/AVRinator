@@ -216,7 +216,7 @@ static void MX_ADC1_Init(void)
   LL_GPIO_Init(USB_CC2_GPIO_Port, &GPIO_InitStruct);
 
   /* ADC1 interrupt Init */
-  NVIC_SetPriority(ADC1_2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_SetPriority(ADC1_2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(ADC1_2_IRQn);
 
   /* USER CODE BEGIN ADC1_Init 1 */
@@ -323,7 +323,7 @@ static void MX_ADC2_Init(void)
   LL_GPIO_Init(VSENSE_LV_GPIO_Port, &GPIO_InitStruct);
 
   /* ADC2 interrupt Init */
-  NVIC_SetPriority(ADC1_2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_SetPriority(ADC1_2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(ADC1_2_IRQn);
 
   /* USER CODE BEGIN ADC2_Init 1 */
@@ -446,7 +446,7 @@ static void MX_DAC1_Init(void)
   LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_DAC1);
 
   /* DAC1 interrupt Init */
-  NVIC_SetPriority(TIM6_DAC_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),15, 0));
+  NVIC_SetPriority(TIM6_DAC_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(TIM6_DAC_IRQn);
 
   /* USER CODE BEGIN DAC1_Init 1 */
@@ -598,7 +598,7 @@ static void MX_TIM8_Init(void)
   LL_GPIO_Init(NFAULT_GPIO_Port, &GPIO_InitStruct);
 
   /* TIM8 interrupt Init */
-  NVIC_SetPriority(TIM8_BRK_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_SetPriority(TIM8_BRK_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(TIM8_BRK_IRQn);
 
   /* USER CODE BEGIN TIM8_Init 1 */
@@ -768,7 +768,7 @@ static void MX_USART1_Init(void)
   LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MDATAALIGN_BYTE);
 
   /* USART1 interrupt Init */
-  NVIC_SetPriority(USART1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_SetPriority(USART1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(USART1_IRQn);
 
   /* USER CODE BEGIN USART1_Init 1 */
@@ -905,7 +905,7 @@ static void MX_USART2_UART_Init(void)
   LL_DMA_SetMemorySize(DMA2, LL_DMA_CHANNEL_2, LL_DMA_MDATAALIGN_BYTE);
 
   /* USART2 interrupt Init */
-  NVIC_SetPriority(USART2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_SetPriority(USART2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(USART2_IRQn);
 
   /* USER CODE BEGIN USART2_Init 1 */
@@ -955,16 +955,16 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Channel1_IRQn interrupt configuration */
-  NVIC_SetPriority(DMA1_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_SetPriority(DMA1_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(DMA1_Channel1_IRQn);
   /* DMA1_Channel2_IRQn interrupt configuration */
-  NVIC_SetPriority(DMA1_Channel2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_SetPriority(DMA1_Channel2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(DMA1_Channel2_IRQn);
   /* DMA2_Channel1_IRQn interrupt configuration */
-  NVIC_SetPriority(DMA2_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_SetPriority(DMA2_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(DMA2_Channel1_IRQn);
   /* DMA2_Channel2_IRQn interrupt configuration */
-  NVIC_SetPriority(DMA2_Channel2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  NVIC_SetPriority(DMA2_Channel2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
   NVIC_EnableIRQ(DMA2_Channel2_IRQn);
 
 }
