@@ -60,6 +60,11 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
 	}
 }
 
+extern "C"
+bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const * request) {
+	return true;
+}
+
 void Setup() {
     /* Peripheral clock enable */
     __HAL_RCC_USB_CLK_ENABLE();
