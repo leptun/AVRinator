@@ -3,12 +3,14 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <config.hpp>
+#include <usb.hpp>
 
 namespace AppMain {
 
 TaskHandle_t pxTaskHandle;
 
 static void taskAppMain(void *pvParameters) {
+	usb::Setup();
 
 	for (;;) {
 		vTaskDelay(1000);

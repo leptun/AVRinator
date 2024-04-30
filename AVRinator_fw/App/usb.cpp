@@ -68,6 +68,8 @@ void Setup() {
     HAL_NVIC_EnableIRQ(USB_HP_IRQn);
     HAL_NVIC_SetPriority(USB_LP_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(USB_LP_IRQn);
+    HAL_NVIC_SetPriority(USBWakeUp_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(USBWakeUp_IRQn);
 
 	tud_init(BOARD_TUD_RHPORT);
 
@@ -121,6 +123,11 @@ void USB_HP_IRQHandler(void) {
 extern "C"
 void USB_LP_IRQHandler(void) {
 	tud_int_handler(0);
+}
+
+extern "C"
+void USBWakeUp_IRQHandler(void) {
+  tud_int_handler(0);
 }
 
 }
