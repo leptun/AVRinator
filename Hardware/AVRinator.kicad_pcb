@@ -12182,6 +12182,18 @@
 			(justify left bottom)
 		)
 	)
+	(gr_text "~{RST} SCK MISO\nGND MOSI VCC"
+		(at 61.1124 70.9422 0)
+		(layer "F.SilkS")
+		(uuid "c154b89e-77a8-4422-8ba2-f02890ac77f0")
+		(effects
+			(font
+				(size 1 0.8)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
 	(gr_text "B RX TX VCC A GND"
 		(at 55.0926 52.8574 0)
 		(layer "F.SilkS")
