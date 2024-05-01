@@ -1,5 +1,7 @@
 #include "usb.hpp"
 #include <tusb.h>
+#include <device/usbd_pvt.h>
+#include "vendor_device_ep0.hpp"
 #include <FreeRTOS.h>
 #include <task.h>
 #include <semphr.h>
@@ -27,9 +29,9 @@ static void usb_device_task(void *pvParameters) {
 extern "C"
 void tud_cdc_rx_cb(uint8_t itf) {
 	switch (itf) {
-	case config::cdc_itf_uart:
-		break;
 	case config::cdc_itf_isp:
+		break;
+	case config::cdc_itf_uart:
 		break;
 	default:
 		Error_Handler();
@@ -39,9 +41,9 @@ void tud_cdc_rx_cb(uint8_t itf) {
 extern "C"
 void tud_cdc_tx_complete_cb(uint8_t itf) {
 	switch (itf) {
-	case config::cdc_itf_uart:
-		break;
 	case config::cdc_itf_isp:
+		break;
+	case config::cdc_itf_uart:
 		break;
 	default:
 		Error_Handler();
@@ -51,9 +53,9 @@ void tud_cdc_tx_complete_cb(uint8_t itf) {
 extern "C"
 void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
 	switch (itf) {
-	case config::cdc_itf_uart:
-		break;
 	case config::cdc_itf_isp:
+		break;
+	case config::cdc_itf_uart:
 		break;
 	default:
 		Error_Handler();
@@ -63,6 +65,31 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
 extern "C"
 bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const * request) {
 	return true;
+}
+
+#if CFG_TUSB_DEBUG >= CFG_TUD_LOG_LEVEL
+  #define DRIVER_NAME(_name)    .name = _name,
+#else
+  #define DRIVER_NAME(_name)
+#endif
+
+static usbd_class_driver_t const _usbd_app_drivers[] {
+	{
+		DRIVER_NAME("VENDOR_EP0")
+		.init             = vendord_ep0_init,
+		.deinit           = vendord_ep0_deinit,
+		.reset            = vendord_ep0_reset,
+		.open             = vendord_ep0_open,
+		.control_xfer_cb  = tud_vendor_control_xfer_cb,
+		.xfer_cb          = NULL,
+		.sof              = NULL
+	},
+};
+
+extern "C"
+usbd_class_driver_t const* usbd_app_driver_get_cb(uint8_t* driver_count) {
+	*driver_count = COUNT_OF(_usbd_app_drivers);
+	return _usbd_app_drivers;
 }
 
 void Setup() {

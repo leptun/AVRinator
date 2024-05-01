@@ -27,12 +27,9 @@
 
 extern size_t board_usb_get_serial(uint16_t desc_str1[], size_t max_chars);
 
-//#define USB_VID   0x1FFB
-//#define USB_PID   0x00BB
-//#define USB_BCD   0x0102
-#define USB_VID   0xCAFE
-#define USB_PID   0x4002
-#define USB_BCD   0x0100
+#define USB_VID   0x1FFB
+#define USB_PID   0x00BB
+#define USB_BCD   0x0102
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -73,7 +70,7 @@ uint8_t const * tud_descriptor_device_cb(void)
 //--------------------------------------------------------------------+
 enum
 {
-//  ITF_NUM_CTRL = 0,
+  ITF_NUM_CTRL = 0,
   ITF_NUM_CDC_0,
   ITF_NUM_CDC_0_DATA,
   ITF_NUM_CDC_1,
@@ -81,13 +78,13 @@ enum
   ITF_NUM_TOTAL
 };
 
-#define TUD_VENDOR_DEFAULT_CONTROL_DESC_LEN  (9)
+#define TUD_VENDOR_EP0_DESC_LEN  (9)
 // Interface number, interface subclass, interface protocol, string index
-#define TUD_VENDOR_DEFAULT_CONTROL_DESCRIPTOR(_itfnum, _itfSubClass, _itfProtocol, _stridx) \
+#define TUD_VENDOR_EP0_DESCRIPTOR(_itfnum, _itfSubClass, _itfProtocol, _stridx) \
   /* Interface */\
   9, TUSB_DESC_INTERFACE, _itfnum, 0, 0, TUSB_CLASS_VENDOR_SPECIFIC, _itfSubClass, _itfProtocol, _stridx
 
-#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + CFG_TUD_CDC * TUD_CDC_DESC_LEN)
+#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_VENDOR_EP0_DESC_LEN + CFG_TUD_CDC * TUD_CDC_DESC_LEN)
 
 #define EPNUM_CDC_0_NOTIF   0x81
 #define EPNUM_CDC_0_OUT     0x02
@@ -103,7 +100,7 @@ uint8_t const desc_fs_configuration[] =
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 500),
 
   // EP0 interface descriptor
-//  TUD_VENDOR_DEFAULT_CONTROL_DESCRIPTOR(ITF_NUM_CTRL, 9, 1, 2),
+  TUD_VENDOR_EP0_DESCRIPTOR(ITF_NUM_CTRL, 9, 1, 2),
 
   // 1st CDC: Interface number, string index, EP notification address and size, EP data address (out, in) and size.
   TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4, EPNUM_CDC_0_NOTIF, 8, EPNUM_CDC_0_OUT, EPNUM_CDC_0_IN, 64),
