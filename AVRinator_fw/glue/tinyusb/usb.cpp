@@ -7,6 +7,7 @@
 #include <semphr.h>
 #include <util.hpp>
 #include <config.hpp>
+#include "pavr2_protocol.h"
 
 namespace usb {
 
@@ -64,6 +65,55 @@ void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
 
 extern "C"
 bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const * request) {
+	switch (request->bRequest) {
+	case PAVR2_REQUEST_GET_SETTING: {
+		TU_VERIFY(request->bmRequestType == 0xC0);
+		TU_VERIFY(request->wValue == 0);
+		TU_VERIFY(request->wLength == 1);
+
+		if (stage == CONTROL_STAGE_SETUP) {
+			uint8_t response = 0;
+			TU_VERIFY(tud_control_xfer(rhport, request, &response, 1));
+		}
+	} break;
+	case PAVR2_REQUEST_SET_SETTING: {
+		TU_VERIFY(request->bmRequestType == 0x40);
+		TU_VERIFY(request->wLength == 0);
+
+		if (stage == CONTROL_STAGE_SETUP) {
+			switch (request->wIndex) {
+			}
+			TU_VERIFY(tud_control_xfer(rhport, request, nullptr, 0));
+		}
+	} break;
+	case PAVR2_REQUEST_GET_VARIABLE: {
+		TU_VERIFY(request->bmRequestType == 0xC0);
+		TU_VERIFY(request->wValue == 0);
+		TU_VERIFY(request->wLength == 1);
+
+		if (stage == CONTROL_STAGE_SETUP) {
+			uint8_t response = 0;
+
+			switch (request->wIndex) {
+			}
+
+			TU_VERIFY(tud_control_xfer(rhport, request, &response, 1));
+		}
+	} break;
+	case PAVR2_REQUEST_DIGITAL_READ: {
+		TU_VERIFY(request->bmRequestType == 0xC0);
+		TU_VERIFY(request->wValue == 0);
+		TU_VERIFY(request->wIndex == 0);
+		TU_VERIFY(request->wLength == 3);
+
+		if (stage == CONTROL_STAGE_SETUP) {
+			uint8_t portBits[3] = {};
+			TU_VERIFY(tud_control_xfer(rhport, request, &portBits, 3));
+		}
+	} break;
+	default:
+		return false;
+	}
 	return true;
 }
 
@@ -80,7 +130,7 @@ static usbd_class_driver_t const _usbd_app_drivers[] {
 		.deinit           = vendord_ep0_deinit,
 		.reset            = vendord_ep0_reset,
 		.open             = vendord_ep0_open,
-		.control_xfer_cb  = tud_vendor_control_xfer_cb,
+		.control_xfer_cb  = NULL,
 		.xfer_cb          = NULL,
 		.sof              = NULL
 	},

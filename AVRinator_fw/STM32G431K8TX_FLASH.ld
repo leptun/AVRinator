@@ -44,8 +44,9 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 32K
-  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 64K
+  RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 32K
+  FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 64K - 2K
+  EEPROM (r) : ORIGIN = ORIGIN(FLASH) + LENGTH(FLASH), LENGTH = 2K
 }
 
 /* Sections */
@@ -167,6 +168,12 @@ SECTIONS
 		. = ALIGN(4);
 		_eheap = .;
 	} >RAM
+	
+	.eeprom (NOLOAD) :
+	{
+		. = LENGTH(EEPROM);
+		FILL(0xFF);
+	} > EEPROM
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :
