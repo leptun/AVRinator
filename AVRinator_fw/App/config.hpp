@@ -6,8 +6,8 @@
 
 namespace config {
 
-static constexpr uint8_t cdc_itf_uart = 0;
-static constexpr uint8_t cdc_itf_isp = 1;
+static constexpr uint8_t cdc_itf_isp = 0;
+static constexpr uint8_t cdc_itf_uart = 1;
 
 namespace resources {
 static constexpr size_t appMain_stack_depth = 256;

@@ -27,9 +27,12 @@
 
 extern size_t board_usb_get_serial(uint16_t desc_str1[], size_t max_chars);
 
-#define USB_VID   0x1FFB
-#define USB_PID   0x00BB
-#define USB_BCD   0x0102
+//#define USB_VID   0x1FFB
+//#define USB_PID   0x00BB
+//#define USB_BCD   0x0102
+#define USB_VID   0xCAFE
+#define USB_PID   0x4002
+#define USB_BCD   0x0100
 
 //--------------------------------------------------------------------+
 // Device Descriptors
