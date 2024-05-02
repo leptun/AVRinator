@@ -140,6 +140,7 @@ const char * const string_desc_arr[] =
   NULL,                          // 3: Serials will use unique ID if possible
   "AVRinator Programming Port",  // 4: CDC Interface 0
   "AVRinator TTL Serial Port",   // 5: CDC Interface 1
+  "-"                            // 6: fw version
 };
 
 static uint16_t _desc_str[32 + 1];
