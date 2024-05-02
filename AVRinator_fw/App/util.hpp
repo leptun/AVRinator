@@ -41,6 +41,42 @@ public:
 	}
 };
 
+struct LL_DMA_CHANNEL {
+	DMA_TypeDef * const DMAx;
+	const uint32_t Channel;
+	volatile uint32_t * const ISR;
+	volatile uint32_t * const IFCR;
+	const uint8_t bitOffset;
+
+public:
+	constexpr LL_DMA_CHANNEL() :
+			DMAx(0),
+			Channel(0),
+			ISR(0),
+			IFCR(0),
+			bitOffset(0) {}
+	constexpr LL_DMA_CHANNEL(DMA_TypeDef *DMAx, uint32_t Channel) :
+			DMAx(DMAx),
+			Channel(Channel),
+			ISR(&DMAx->ISR),
+			IFCR(&DMAx->IFCR),
+			bitOffset(4 * Channel) {}
+
+	uint32_t irq_handler() const {
+		uint32_t mask =
+				(LL_DMA_IsEnabledIT_TE(DMAx, Channel) ? DMA_ISR_TEIF1 : 0) |
+				(LL_DMA_IsEnabledIT_HT(DMAx, Channel) ? DMA_ISR_HTIF1 : 0) |
+				(LL_DMA_IsEnabledIT_TC(DMAx, Channel) ? DMA_ISR_TCIF1 : 0);
+		uint32_t flags = *ISR & (mask << bitOffset);
+		*IFCR = flags; //clear enabled flags
+		return flags >> bitOffset;
+	}
+
+	void clearIRQ(uint32_t mask) const {
+		*IFCR = mask << bitOffset;
+	}
+};
+
 template<typename T>
 constexpr T * ioCast(unsigned long addr) {
 	return static_cast<T *>(static_cast<void *>(&null_ptr + addr));

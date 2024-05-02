@@ -3,6 +3,7 @@
 #include "config.hpp"
 #include "pavr2.hpp"
 #include "pavr2_protocol.h"
+#include "AppMain.hpp"
 
 namespace usb {
 
@@ -12,37 +13,23 @@ void Setup() {
 
 extern "C"
 void tud_cdc_rx_cb(uint8_t itf) {
-	switch (itf) {
-	case config::cdc_itf_isp:
-		break;
-	case config::cdc_itf_uart:
-		break;
-	default:
-		Error_Handler();
-	}
+	AppMain::Notify(itf, AppMain::FLAG_COMM_RX);
 }
 
 extern "C"
 void tud_cdc_tx_complete_cb(uint8_t itf) {
-	switch (itf) {
-	case config::cdc_itf_isp:
-		break;
-	case config::cdc_itf_uart:
-		break;
-	default:
-		Error_Handler();
-	}
+	AppMain::Notify(itf, AppMain::FLAG_COMM_TX);
 }
 
 extern "C"
 void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
-	switch (itf) {
-	case config::cdc_itf_isp:
-		break;
-	case config::cdc_itf_uart:
-		break;
-	default:
-		Error_Handler();
+	AppMain::Notify(itf, AppMain::FLAG_COMM_LINE_STATE);
+}
+
+extern "C"
+void tud_cdc_line_coding_cb(uint8_t itf, cdc_line_coding_t const* p_line_coding) {
+	if (itf == config::cdc_itf_ttl) {
+		config::resources::ttl_usart->setBaud(p_line_coding->bit_rate);
 	}
 }
 

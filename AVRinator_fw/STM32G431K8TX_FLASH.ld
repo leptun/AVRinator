@@ -49,6 +49,8 @@ MEMORY
   EEPROM (r) : ORIGIN = ORIGIN(FLASH) + LENGTH(FLASH), LENGTH = 2K
 }
 
+null_ptr = 0;
+
 /* Sections */
 SECTIONS
 {

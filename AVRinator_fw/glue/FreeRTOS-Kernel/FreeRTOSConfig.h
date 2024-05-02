@@ -63,7 +63,7 @@ extern uint32_t SystemCoreClock;
 #define configUSE_16_BIT_TICKS                   0
 #define configIDLE_SHOULD_YIELD                  1
 #define configUSE_TASK_NOTIFICATIONS             1
-#define configTASK_NOTIFICATION_ARRAY_ENTRIES    1
+#define configTASK_NOTIFICATION_ARRAY_ENTRIES    2
 #define configUSE_MUTEXES                        1
 #define configUSE_RECURSIVE_MUTEXES              1
 #define configUSE_COUNTING_SEMAPHORES            1
@@ -83,7 +83,7 @@ extern uint32_t SystemCoreClock;
 #define configSUPPORT_STATIC_ALLOCATION             0
 #define configSUPPORT_DYNAMIC_ALLOCATION            1
 #define configKERNEL_PROVIDED_STATIC_MEMORY         0
-#define configTOTAL_HEAP_SIZE                       ((size_t)8192)
+#define configTOTAL_HEAP_SIZE                       ((size_t)16384)
 #define configAPPLICATION_ALLOCATED_HEAP            0
 #define configSTACK_ALLOCATION_FROM_SEPARATE_HEAP   0
 #define configENABLE_HEAP_PROTECTOR                 0
