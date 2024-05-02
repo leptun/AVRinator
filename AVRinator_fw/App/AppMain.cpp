@@ -8,33 +8,38 @@
 
 namespace AppMain {
 
-TaskHandle_t pxTaskHandle;
 uint32_t rcc_csr_initial;
 
-static void taskAppMain(void *pvParameters) {
-	rcc_csr_initial = RCC->CSR;
-	LL_RCC_ClearResetFlags();
+TaskHandle_t taskHandleISP;
+TaskHandle_t taskHandleTTL;
 
-	eeprom::Setup();
-	usb::Setup();
 
+static void taskISP(void *pvParameters) {
+	for (;;) {
+		vTaskDelay(1000);
+	}
+}
+
+static void taskTTL(void *pvParameters) {
 	for (;;) {
 		vTaskDelay(1000);
 	}
 }
 
 void Setup() {
-	if (xTaskCreate(taskAppMain, "AppMain", config::resources::appMain_stack_depth, NULL, 0, &pxTaskHandle) != pdPASS) {
+	rcc_csr_initial = RCC->CSR;
+	LL_RCC_ClearResetFlags();
+
+	eeprom::Setup();
+	usb::Setup();
+
+	if (xTaskCreate(taskISP, "ISP", config::resources::ISP_stack_depth, NULL, 0, &taskHandleISP) != pdPASS) {
 		Error_Handler();
 	}
 
-//	LL_DBGMCU_APB1_GRP1_FreezePeriph(
-//			LL_DBGMCU_APB1_GRP1_IWDG_STOP |
-//	);
-//	LL_DBGMCU_APB2_GRP1_FreezePeriph(
-//			LL_DBGMCU_APB2_GRP1_TIM9_STOP |
-//			LL_DBGMCU_APB2_GRP1_TIM11_STOP
-//	);
+	if (xTaskCreate(taskTTL, "TTL", config::resources::TTL_stack_depth, NULL, 0, &taskHandleTTL) != pdPASS) {
+		Error_Handler();
+	}
 }
 
 }

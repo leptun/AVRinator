@@ -10,9 +10,12 @@ static constexpr uint8_t cdc_itf_isp = 0;
 static constexpr uint8_t cdc_itf_uart = 1;
 
 namespace resources {
-static constexpr size_t appMain_stack_depth = 256;
+static constexpr size_t ISP_stack_depth = 256;
+static constexpr size_t TTL_stack_depth = 256;
 static constexpr size_t usbd_stack_depth = 256 * (CFG_TUSB_DEBUG ? 2 : 1);
 }
+
+static constexpr uint32_t eeprom_apply_delay = 1000;
 
 //static constexpr uint32_t system_clock_frequency = 216000000;
 //

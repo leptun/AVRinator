@@ -8,8 +8,10 @@ enum Flags {
 //	FLAG_MODULES = 0x000001,
 };
 
-extern TaskHandle_t pxTaskHandle;
 extern uint32_t rcc_csr_initial;
+
+extern TaskHandle_t taskHandleISP;
+extern TaskHandle_t taskHandleTTL;
 
 extern void Setup();
 

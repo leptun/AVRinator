@@ -27,7 +27,7 @@ struct Settings {
 	};
 
 	inline bool isEmpty() const {
-		for (const uint8_t *v = (const uint8_t*)this; v < v + sizeof(this); v++) {
+		for (const uint8_t *v = (const uint8_t*)this; v < (const uint8_t*)(this + 1); v++) {
 			if (*v != 0xFF) {
 				return false;
 			}

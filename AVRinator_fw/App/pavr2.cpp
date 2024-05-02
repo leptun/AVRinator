@@ -54,7 +54,7 @@ void setSetting(uint8_t id, uint8_t value) {
 	case PAVR2_SETTING_VCC_5V_MIN:
 	case PAVR2_SETTING_VCC_5V_MAX:
 		settings->raw[id - 1] = value;
-		//todo start apply timer
+		eeprom::applySettings();
 		break;
 	case PAVR2_SETTING_NOT_INITIALIZED:
 		eeprom::resetToDefaults();
