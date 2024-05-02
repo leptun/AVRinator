@@ -17,12 +17,15 @@ static Settings settingsCache;
 static TimerHandle_t applyTimerHandle;
 
 static void commitSettings(TimerHandle_t xTimer) {
-	if (!lastSettings) { Error_Handler(); }
-
-	for (lastSettings++; lastSettings < _eeprom_end; lastSettings++) {
-		if (lastSettings->isEmpty()) {
-			break;
+	if (lastSettings) {
+		for (lastSettings++; lastSettings < _eeprom_end; lastSettings++) {
+			if (lastSettings->isEmpty()) {
+				break;
+			}
 		}
+	}
+	else {
+		lastSettings = _eeprom;
 	}
 
 	if (HAL_FLASH_Unlock() != HAL_OK) { Error_Handler(); }
@@ -50,6 +53,8 @@ static void commitSettings(TimerHandle_t xTimer) {
 }
 
 void Setup() {
+	applyTimerHandle = xTimerCreate("eeprom_commit", pdMS_TO_TICKS(config::eeprom_apply_delay), false, 0, commitSettings);
+
 	// find last valid settings
 	for (const Settings *settings = _eeprom; settings < _eeprom_end; settings++) {
 		if (!settings->isEmpty()) {
@@ -61,24 +66,26 @@ void Setup() {
 	}
 
 	if (!lastSettings) {
-		lastSettings = _eeprom;
 		resetToDefaults();
 	}
 	else {
 		settingsCache = *lastSettings;
 	}
-
-	applyTimerHandle = xTimerCreate("eeprom_commit", pdMS_TO_TICKS(config::eeprom_apply_delay), false, 0, commitSettings);
 }
 
 Settings *getSettings() {
 	return &settingsCache;
 }
 
-void applySettings() {
+void applySettings(bool instant) {
 	//todo apply new values to isp task
 
-	if (xTimerReset(applyTimerHandle, 0) != pdPASS) { Error_Handler(); }
+	if (instant) {
+		commitSettings(applyTimerHandle);
+	}
+	else {
+		if (xTimerReset(applyTimerHandle, 0) != pdPASS) { Error_Handler(); }
+	}
 }
 
 void resetToDefaults() {
@@ -98,7 +105,7 @@ void resetToDefaults() {
 	settingsCache.vcc_3v3_max = pavr2::mvToRaw(3872);
 	settingsCache.vcc_5v_min = pavr2::mvToRaw(4128);
 	settingsCache.vcc_5v_max = pavr2::mvToRaw(5856);
-	applySettings();
+	applySettings(true);
 }
 
 }
