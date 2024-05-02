@@ -3,13 +3,19 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <config.hpp>
-#include <usb.hpp>
+#include "eeprom.hpp"
+#include "usb.hpp"
 
 namespace AppMain {
 
 TaskHandle_t pxTaskHandle;
+uint32_t rcc_csr_initial;
 
 static void taskAppMain(void *pvParameters) {
+	rcc_csr_initial = RCC->CSR;
+	LL_RCC_ClearResetFlags();
+
+	eeprom::Setup();
 	usb::Setup();
 
 	for (;;) {

@@ -171,9 +171,10 @@ SECTIONS
 	
 	.eeprom (NOLOAD) :
 	{
+		_eeprom = .;
 		. = LENGTH(EEPROM);
-		FILL(0xFF);
-	} > EEPROM
+		_eeprom_end = .;
+	} > EEPROM = 0xFF
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :
