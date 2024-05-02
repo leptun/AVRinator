@@ -40,6 +40,20 @@ void USART::Setup() {
 	}
 }
 
+void USART::receive(uint8_t *buf, size_t len) {
+	while (len-- > 0) {
+		while (rxHead == rxTail) {
+			xEventGroupWaitBits(flags, FLAG_RX_AVAILABLE, pdTRUE, pdTRUE, portMAX_DELAY);
+		}
+		uint32_t newTail = rxTail + 1;
+		*(buf++) = hwdef->rxBuf[rxTail];
+		if (newTail > hwdef->rxBufSize) {
+			newTail = 0;
+		}
+		rxTail = newTail;
+	}
+}
+
 size_t USART::receiveAny(uint8_t *buf, size_t maxlen) {
 	while (rxHead == rxTail) {
 		xEventGroupWaitBits(flags, FLAG_RX_AVAILABLE, pdTRUE, pdTRUE, portMAX_DELAY);
@@ -55,20 +69,6 @@ size_t USART::receiveAny(uint8_t *buf, size_t maxlen) {
 		pushed++;
 	}
 	return pushed;
-}
-
-void USART::receive(uint8_t *buf, size_t len) {
-	while (len-- > 0) {
-		while (rxHead == rxTail) {
-			xEventGroupWaitBits(flags, FLAG_RX_AVAILABLE, pdTRUE, pdTRUE, portMAX_DELAY);
-		}
-		uint32_t newTail = rxTail + 1;
-		*(buf++) = hwdef->rxBuf[rxTail];
-		if (newTail > hwdef->rxBufSize) {
-			newTail = 0;
-		}
-		rxTail = newTail;
-	}
 }
 
 void USART::send(const uint8_t *buf, size_t len) {
