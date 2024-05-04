@@ -30,6 +30,8 @@ static void taskTTLtx(void *pvParameters) {
 		int rx = usb::cdc_read_any(config::cdc_itf_ttl, buf, sizeof(buf));
 		if (rx > 0) {
 			config::resources::ttl_usart->send(buf, rx);
+		} else {
+			vTaskDelay(1);
 		}
 	}
 }
@@ -37,11 +39,25 @@ static void taskTTLtx(void *pvParameters) {
 void Setup() {
 	config::resources::ttl_usart->Setup();
 
-	if (xTaskCreate(taskTTLrx, "TTLrx", config::resources::TTL_stack_depth, NULL, 1, &taskHandleTTLrx) != pdPASS) {
+	if (xTaskCreate(
+			taskTTLrx,
+			"TTLrx",
+			config::resources::TTL_stack_depth,
+			NULL,
+			config::task_priorities::TTLrx,
+			&taskHandleTTLrx
+	) != pdPASS) {
 		Error_Handler();
 	}
 
-	if (xTaskCreate(taskTTLtx, "TTLtx", config::resources::TTL_stack_depth, NULL, 1, &taskHandleTTLtx) != pdPASS) {
+	if (xTaskCreate(
+			taskTTLtx,
+			"TTLtx",
+			config::resources::TTL_stack_depth,
+			NULL,
+			config::task_priorities::TTLtx,
+			&taskHandleTTLtx
+	) != pdPASS) {
 		Error_Handler();
 	}
 }

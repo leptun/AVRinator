@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <tusb.h>
 #include "usart.hpp"
+#include <FreeRTOS.h>
 
 namespace config {
 
@@ -33,7 +34,14 @@ static usart::USART * const isp_usart = &usart::usart1;
 static constexpr size_t isp_rxbuf_size = 256;
 
 static usart::USART * const ttl_usart = &usart::usart2;
-static constexpr size_t ttl_rxbuf_size = 2048;
+static constexpr size_t ttl_rxbuf_size = 1024;
+}
+
+namespace task_priorities {
+static constexpr UBaseType_t usbd = 4;
+static constexpr UBaseType_t ISP = 3;
+static constexpr UBaseType_t TTLrx = 2;
+static constexpr UBaseType_t TTLtx = 3;
 }
 
 static constexpr uint32_t eeprom_apply_delay = 1000;

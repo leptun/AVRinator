@@ -63,7 +63,14 @@ void Setup() {
 	tud_init(BOARD_TUD_RHPORT);
 
 	// Create a task for tinyusb device stack
-	if (xTaskCreate(usb_device_task, "usbd", config::resources::usbd_stack_depth, NULL, (configMAX_PRIORITIES-1), &pxTaskHandle) != pdPASS) {
+	if (xTaskCreate(
+			usb_device_task,
+			"usbd",
+			config::resources::usbd_stack_depth,
+			NULL,
+			config::task_priorities::usbd,
+			&pxTaskHandle
+	) != pdPASS) {
 		Error_Handler();
 	}
 }

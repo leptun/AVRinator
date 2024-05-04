@@ -18,7 +18,14 @@ static void taskISP(void *pvParameters) {
 void Setup() {
 	config::resources::isp_usart->Setup();
 
-	if (xTaskCreate(taskISP, "ISP", config::resources::ISP_stack_depth, NULL, 2, &taskHandleISP) != pdPASS) {
+	if (xTaskCreate(
+			taskISP,
+			"ISP",
+			config::resources::ISP_stack_depth,
+			NULL,
+			config::task_priorities::ISP,
+			&taskHandleISP
+	) != pdPASS) {
 		Error_Handler();
 	}
 }

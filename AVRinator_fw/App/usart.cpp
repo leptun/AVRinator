@@ -5,6 +5,8 @@
 
 namespace usart {
 
+static constexpr UBaseType_t notifyIndex = tskDEFAULT_INDEX_TO_NOTIFY;
+
 void USART::Setup() {
 	hwdef->MX_USARTx_Init();
 	if (hwdef->rxBuf) {
@@ -55,7 +57,7 @@ void USART::awaitRx() {
 	}
 	taskRx = xTaskGetCurrentTaskHandle();
 	while (rxHead == rxTail) {
-		util::xTaskNotifyWaitBitsAnyIndexed(tskDEFAULT_INDEX_TO_NOTIFY, 0, FLAG_RX_AVAILABLE, NULL, portMAX_DELAY);
+		util::xTaskNotifyWaitBitsAnyIndexed(notifyIndex, 0, FLAG_RX_AVAILABLE, NULL, portMAX_DELAY);
 	}
 	taskRx = nullptr;
 }
@@ -97,7 +99,7 @@ void USART::send(const uint8_t *buf, size_t len) {
 		LL_USART_EnableDirectionTx(hwdef->USARTx);
 		LL_USART_EnableIT_TXE(hwdef->USARTx);
 	}
-	util::xTaskNotifyWaitBitsAnyIndexed(tskDEFAULT_INDEX_TO_NOTIFY, 0, FLAG_TX_COMPLETE, NULL, portMAX_DELAY);
+	util::xTaskNotifyWaitBitsAnyIndexed(notifyIndex, 0, FLAG_TX_COMPLETE, NULL, portMAX_DELAY);
 	taskTx = nullptr;
 }
 
@@ -125,7 +127,7 @@ void USART::setBaud(uint32_t baud) {
 
 void USART::rx_push(BaseType_t *pxHigherPriorityTaskWoken) {
 	uint32_t newHead = hwdef->rxBufSize - LL_DMA_GetDataLength(hwdef->rxDMA.DMAx, hwdef->rxDMA.Channel);
-	if (newHead != rxHead && taskRx && xTaskNotifyFromISR(taskRx, FLAG_RX_AVAILABLE, eSetBits, pxHigherPriorityTaskWoken) != pdPASS) {
+	if (newHead != rxHead && taskRx && xTaskNotifyIndexedFromISR(taskRx, notifyIndex, FLAG_RX_AVAILABLE, eSetBits, pxHigherPriorityTaskWoken) != pdPASS) {
 		Error_Handler();
 	}
 	rxHead = newHead;
@@ -136,7 +138,7 @@ void USART::irq_usart() {
 	if (LL_USART_IsActiveFlag_IDLE(hwdef->USARTx) && LL_USART_IsEnabledIT_IDLE(hwdef->USARTx)) {
 		LL_USART_ClearFlag_IDLE(hwdef->USARTx);
 		rx_push(&xHigherPriorityTaskWoken);
-		if (taskRx && xTaskNotifyFromISR(taskRx, FLAG_RX_IDLE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
+		if (taskRx && xTaskNotifyIndexedFromISR(taskRx, notifyIndex, FLAG_RX_IDLE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
 			Error_Handler();
 		}
 	}
@@ -147,7 +149,7 @@ void USART::irq_usart() {
 			newHead = 0;
 		}
 		rxHead = newHead;
-		if (taskRx && xTaskNotifyFromISR(taskRx, FLAG_RX_AVAILABLE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
+		if (taskRx && xTaskNotifyIndexedFromISR(taskRx, notifyIndex, FLAG_RX_AVAILABLE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
 			Error_Handler();
 		}
 	}
@@ -167,7 +169,7 @@ void USART::irq_usart() {
 		LL_USART_DisableIT_TC(hwdef->USARTx);
 		LL_USART_DisableDirectionTx(hwdef->USARTx);
 
-		if (taskTx && xTaskNotifyFromISR(taskTx, FLAG_TX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
+		if (taskTx && xTaskNotifyIndexedFromISR(taskTx, notifyIndex, FLAG_TX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
 			Error_Handler();
 		}
 	}
