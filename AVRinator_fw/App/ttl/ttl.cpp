@@ -48,7 +48,7 @@ void Setup() {
 
 void Notify(uint32_t flags) {
 	if (flags & (usb::FLAG_COMM_TX | usb::FLAG_COMM_LINE_STATE)) {
-		if (taskHandleTTLrx && xTaskNotifyIndexed(taskHandleTTLtx, 1, flags, eSetBits) != pdPASS) {
+		if (taskHandleTTLrx && xTaskNotifyIndexed(taskHandleTTLrx, 1, flags, eSetBits) != pdPASS) {
 			Error_Handler();
 		}
 	}

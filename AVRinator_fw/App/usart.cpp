@@ -59,9 +59,6 @@ void USART::awaitRx() {
 }
 
 size_t USART::receiveAny(uint8_t *buf, size_t maxlen) {
-	while (rxHead == rxTail) {
-		xEventGroupWaitBits(flags, FLAG_RX_AVAILABLE, pdTRUE, pdTRUE, portMAX_DELAY);
-	}
 	uint32_t pushed = 0;
 	while (rxHead != rxTail && maxlen-- > 0) {
 		uint32_t newTail = rxTail + 1;
@@ -175,7 +172,8 @@ void USART::irq_dma_rx() {
 	assert(hwdef->rxDMA.DMAx);
 	uint32_t flags = hwdef->rxDMA.irq_handler();
 	if (flags & (DMA_ISR_HTIF1 | DMA_ISR_TCIF1)) {
-		rx_push();
+		BaseType_t xHigherPriorityTaskWoken = rx_push();
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
 	else {
 		Error_Handler();
