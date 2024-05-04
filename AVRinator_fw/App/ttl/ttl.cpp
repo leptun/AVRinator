@@ -18,8 +18,10 @@ static void taskTTLrx(void *pvParameters) {
 			usb::cdc_write(config::cdc_itf_ttl, buf, rx);
 		}
 		else {
-			usb::cdc_write_flush(config::cdc_itf_ttl);
-			config::resources::ttl_usart->awaitRx();
+			if (!usb::cdc_write_push(config::cdc_itf_ttl)) {
+				// nothing left to push, wait for more uart rx to happen
+				config::resources::ttl_usart->awaitRx();
+			}
 		}
 	}
 }

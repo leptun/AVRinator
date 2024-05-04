@@ -55,6 +55,11 @@ int cdc_write(uint8_t itf, const uint8_t *buf, size_t count) {
 	}
 }
 
+uint32_t cdc_write_push(uint8_t itf) {
+	tud_cdc_n_write_flush(itf);
+	return CFG_TUD_CDC_TX_BUFSIZE - tud_cdc_n_write_available(itf);
+}
+
 void cdc_write_flush(uint8_t itf) {
 	while (tud_cdc_n_write_available(itf) != CFG_TUD_CDC_TX_BUFSIZE) {
 		tud_cdc_n_write_flush(itf);
