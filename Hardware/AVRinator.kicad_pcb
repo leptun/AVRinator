@@ -12387,6 +12387,18 @@
 			(justify left bottom)
 		)
 	)
+	(gr_text "JLCJLCJLCJLC"
+		(at 56.0832 61.6204 90)
+		(layer "F.SilkS")
+		(uuid "90e7e664-c9fa-4003-a640-9cab5a30d235")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
 	(gr_text "Alex Voinea"
 		(at 61.0176 66.0908 0)
 		(layer "F.SilkS")
