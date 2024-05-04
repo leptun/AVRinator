@@ -47,11 +47,15 @@ void USART::receive(uint8_t *buf, size_t len) {
 		}
 		uint32_t newTail = rxTail + 1;
 		*(buf++) = hwdef->rxBuf[rxTail];
-		if (newTail > hwdef->rxBufSize) {
+		if (newTail >= hwdef->rxBufSize) {
 			newTail = 0;
 		}
 		rxTail = newTail;
 	}
+}
+
+void USART::awaitRx() {
+	xEventGroupWaitBits(flags, FLAG_RX_AVAILABLE, pdTRUE, pdTRUE, portMAX_DELAY);
 }
 
 size_t USART::receiveAny(uint8_t *buf, size_t maxlen) {
@@ -62,7 +66,7 @@ size_t USART::receiveAny(uint8_t *buf, size_t maxlen) {
 	while (rxHead != rxTail && maxlen-- > 0) {
 		uint32_t newTail = rxTail + 1;
 		*(buf++) = hwdef->rxBuf[rxTail];
-		if (newTail > hwdef->rxBufSize) {
+		if (newTail >= hwdef->rxBufSize) {
 			newTail = 0;
 		}
 		rxTail = newTail;

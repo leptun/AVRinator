@@ -36,6 +36,7 @@ public:
 	void Setup();
 
 	void receive(uint8_t *buf, size_t len);
+	void awaitRx();
 	size_t receiveAny(uint8_t *buf, size_t maxlen);
 	void send(const uint8_t *buf, size_t len);
 	void setBaud(uint32_t baud);

@@ -1,8 +1,7 @@
 #include "usb.hpp"
 #include <tinyusb.hpp>
 #include "config.hpp"
-#include "pavr2.hpp"
-#include "pavr2_protocol.h"
+#include "pavr2/pavr2.hpp"
 #include "AppMain.hpp"
 
 namespace usb {
@@ -11,19 +10,71 @@ void Setup() {
 	tinyusb::Setup();
 }
 
+int cdc_read(uint8_t itf, uint8_t *buf, size_t count) {
+	size_t read = 0;
+	while (true) {
+		if (!(tud_ready() && tud_cdc_n_get_line_state(itf) & 0x02)) {
+			return -1;
+		}
+		read += tud_cdc_n_read(itf, buf + read, count - read);
+		if (read == count) {
+			return 0;
+		} else {
+			util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_RX | FLAG_COMM_LINE_STATE, NULL, portMAX_DELAY);
+		}
+	}
+}
+
+int cdc_read_any(uint8_t itf, uint8_t *buf, size_t maxcount) {
+	size_t read = 0;
+	while (true) {
+		if (!(tud_ready() && tud_cdc_n_get_line_state(itf) & 0x02)) {
+			return -1;
+		}
+		read += tud_cdc_n_read(itf, buf + read, maxcount - read);
+		if (read != 0) {
+			return read;
+		} else {
+			util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_RX | FLAG_COMM_LINE_STATE, NULL, portMAX_DELAY);
+		}
+	}
+}
+
+int cdc_write(uint8_t itf, const uint8_t *buf, size_t count) {
+	size_t written = 0;
+	while (true) {
+		if (!(tud_ready() && tud_cdc_n_get_line_state(itf) & 0x02)) {
+			return -1;
+		}
+		written += tud_cdc_n_write(itf, buf + written, count - written);
+		if (written == count) {
+			return 0;
+		} else {
+			util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_TX | FLAG_COMM_LINE_STATE, NULL, portMAX_DELAY);
+		}
+	}
+}
+
+void cdc_write_flush(uint8_t itf) {
+	while (tud_cdc_n_write_available(itf) != CFG_TUD_CDC_TX_BUFSIZE) {
+		tud_cdc_n_write_flush(itf);
+		portYIELD();
+	}
+}
+
 extern "C"
 void tud_cdc_rx_cb(uint8_t itf) {
-	AppMain::Notify(itf, AppMain::FLAG_COMM_RX);
+	AppMain::Notify(itf, FLAG_COMM_RX);
 }
 
 extern "C"
 void tud_cdc_tx_complete_cb(uint8_t itf) {
-	AppMain::Notify(itf, AppMain::FLAG_COMM_TX);
+	AppMain::Notify(itf, FLAG_COMM_TX);
 }
 
 extern "C"
 void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
-	AppMain::Notify(itf, AppMain::FLAG_COMM_LINE_STATE);
+	AppMain::Notify(itf, FLAG_COMM_LINE_STATE);
 }
 
 extern "C"

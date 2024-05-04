@@ -1,7 +1,6 @@
 #include "eeprom.hpp"
 #include <main.h>
-#include "pavr2.hpp"
-#include "pavr2_protocol.h"
+#include "pavr2/pavr2.hpp"
 #include "config.hpp"
 #include <FreeRTOS.h>
 #include <timers.h>
