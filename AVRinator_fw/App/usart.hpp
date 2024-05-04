@@ -21,11 +21,13 @@ struct USART_Def {
 class USART {
 	enum EventFlags {
 		FLAG_RX_AVAILABLE = 0x01,
-		FLAG_TX_COMPLETE = 0x02,
+		FLAG_RX_IDLE = 0x02,
+		FLAG_TX_COMPLETE = 0x04,
 	};
 
 	const USART_Def *hwdef;
-	EventGroupHandle_t flags;
+	TaskHandle_t taskRx;
+	TaskHandle_t taskTx;
 	uint32_t rxHead;
 	uint32_t rxTail;
 	const uint8_t *txbuf;
@@ -48,7 +50,7 @@ public:
 	}
 
 private:
-	BaseType_t rx_push();
+	void rx_push(BaseType_t *pxHigherPriorityTaskWoken);
 
 public:
 	void irq_usart();

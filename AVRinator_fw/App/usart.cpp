@@ -1,5 +1,4 @@
 #include "usart.hpp"
-#include <assert.h>
 #include <stdio.h>
 #include <config.hpp>
 #include <util.hpp>
@@ -8,8 +7,6 @@ namespace usart {
 
 void USART::Setup() {
 	hwdef->MX_USARTx_Init();
-	flags = xEventGroupCreate();
-	assert(flags);
 	if (hwdef->rxBuf) {
 		if (hwdef->rxDMA.DMAx) {
 			// receive using DMA circular with interrupts for half, complete and UART idle
@@ -42,9 +39,7 @@ void USART::Setup() {
 
 void USART::receive(uint8_t *buf, size_t len) {
 	while (len-- > 0) {
-		while (rxHead == rxTail) {
-			xEventGroupWaitBits(flags, FLAG_RX_AVAILABLE, pdTRUE, pdTRUE, portMAX_DELAY);
-		}
+		awaitRx();
 		uint32_t newTail = rxTail + 1;
 		*(buf++) = hwdef->rxBuf[rxTail];
 		if (newTail >= hwdef->rxBufSize) {
@@ -55,7 +50,14 @@ void USART::receive(uint8_t *buf, size_t len) {
 }
 
 void USART::awaitRx() {
-	xEventGroupWaitBits(flags, FLAG_RX_AVAILABLE, pdTRUE, pdTRUE, portMAX_DELAY);
+	if (taskRx) {
+		Error_Handler();
+	}
+	taskRx = xTaskGetCurrentTaskHandle();
+	while (rxHead == rxTail) {
+		util::xTaskNotifyWaitBitsAnyIndexed(tskDEFAULT_INDEX_TO_NOTIFY, 0, FLAG_RX_AVAILABLE, NULL, portMAX_DELAY);
+	}
+	taskRx = nullptr;
 }
 
 size_t USART::receiveAny(uint8_t *buf, size_t maxlen) {
@@ -73,9 +75,14 @@ size_t USART::receiveAny(uint8_t *buf, size_t maxlen) {
 }
 
 void USART::send(const uint8_t *buf, size_t len) {
-	if (len <= 0) {
+	if (!len) {
 		return;
 	}
+	if (taskTx) {
+		// a task is already transmitting on this usart
+		Error_Handler();
+	}
+	taskTx = xTaskGetCurrentTaskHandle();
 	if (hwdef->txDMA.DMAx) {
 		// transmit using DMA
 		LL_DMA_SetMemoryAddress(hwdef->txDMA.DMAx, hwdef->txDMA.Channel, (uint32_t)buf);
@@ -90,8 +97,8 @@ void USART::send(const uint8_t *buf, size_t len) {
 		LL_USART_EnableDirectionTx(hwdef->USARTx);
 		LL_USART_EnableIT_TXE(hwdef->USARTx);
 	}
-
-	xEventGroupWaitBits(flags, FLAG_TX_COMPLETE, pdTRUE, pdTRUE, portMAX_DELAY);
+	util::xTaskNotifyWaitBitsAnyIndexed(tskDEFAULT_INDEX_TO_NOTIFY, 0, FLAG_TX_COMPLETE, NULL, portMAX_DELAY);
+	taskTx = nullptr;
 }
 
 void USART::setBaud(uint32_t baud) {
@@ -116,23 +123,22 @@ void USART::setBaud(uint32_t baud) {
 	LL_USART_EnableDirectionRx(hwdef->USARTx);
 }
 
-BaseType_t USART::rx_push() {
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
+void USART::rx_push(BaseType_t *pxHigherPriorityTaskWoken) {
 	uint32_t newHead = hwdef->rxBufSize - LL_DMA_GetDataLength(hwdef->rxDMA.DMAx, hwdef->rxDMA.Channel);
-	if (newHead != rxHead && xEventGroupSetBitsFromISR(flags, FLAG_RX_AVAILABLE, &xHigherPriorityTaskWoken) != pdPASS) {
+	if (newHead != rxHead && taskRx && xTaskNotifyFromISR(taskRx, FLAG_RX_AVAILABLE, eSetBits, pxHigherPriorityTaskWoken) != pdPASS) {
 		Error_Handler();
 	}
 	rxHead = newHead;
-
-	return xHigherPriorityTaskWoken;
 }
 
 void USART::irq_usart() {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	if (LL_USART_IsActiveFlag_IDLE(hwdef->USARTx) && LL_USART_IsEnabledIT_IDLE(hwdef->USARTx)) {
 		LL_USART_ClearFlag_IDLE(hwdef->USARTx);
-		xHigherPriorityTaskWoken |= rx_push();
+		rx_push(&xHigherPriorityTaskWoken);
+		if (taskRx && xTaskNotifyFromISR(taskRx, FLAG_RX_IDLE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
+			Error_Handler();
+		}
 	}
 	if (LL_USART_IsActiveFlag_RXNE(hwdef->USARTx) && LL_USART_IsEnabledIT_RXNE(hwdef->USARTx)) {
 		uint32_t newHead = rxHead;
@@ -141,7 +147,7 @@ void USART::irq_usart() {
 			newHead = 0;
 		}
 		rxHead = newHead;
-		if (xEventGroupSetBitsFromISR(flags, FLAG_RX_AVAILABLE, &xHigherPriorityTaskWoken) != pdPASS) {
+		if (taskRx && xTaskNotifyFromISR(taskRx, FLAG_RX_AVAILABLE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
 			Error_Handler();
 		}
 	}
@@ -161,7 +167,7 @@ void USART::irq_usart() {
 		LL_USART_DisableIT_TC(hwdef->USARTx);
 		LL_USART_DisableDirectionTx(hwdef->USARTx);
 
-		if (xEventGroupSetBitsFromISR(flags, FLAG_TX_COMPLETE, &xHigherPriorityTaskWoken) != pdPASS) {
+		if (taskTx && xTaskNotifyFromISR(taskTx, FLAG_TX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
 			Error_Handler();
 		}
 	}
@@ -169,19 +175,24 @@ void USART::irq_usart() {
 }
 
 void USART::irq_dma_rx() {
-	assert(hwdef->rxDMA.DMAx);
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	if (!hwdef->rxDMA.DMAx) {
+		Error_Handler();
+	}
 	uint32_t flags = hwdef->rxDMA.irq_handler();
 	if (flags & (DMA_ISR_HTIF1 | DMA_ISR_TCIF1)) {
-		BaseType_t xHigherPriorityTaskWoken = rx_push();
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+		rx_push(&xHigherPriorityTaskWoken);
 	}
 	else {
 		Error_Handler();
 	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 void USART::irq_dma_tx() {
-	assert(hwdef->txDMA.DMAx);
+	if (!hwdef->txDMA.DMAx) {
+		Error_Handler();
+	}
 	uint32_t flags = hwdef->txDMA.irq_handler();
 	if (flags & (DMA_ISR_TCIF1)) {
 		LL_DMA_DisableChannel(hwdef->txDMA.DMAx, hwdef->txDMA.Channel);

@@ -33,7 +33,7 @@ static usart::USART * const isp_usart = &usart::usart1;
 static constexpr size_t isp_rxbuf_size = 256;
 
 static usart::USART * const ttl_usart = &usart::usart2;
-static constexpr size_t ttl_rxbuf_size = 256;
+static constexpr size_t ttl_rxbuf_size = 2048;
 }
 
 static constexpr uint32_t eeprom_apply_delay = 1000;
