@@ -33,7 +33,7 @@ static void taskTTLtx(void *pvParameters) {
 		if (rx > 0) {
 			config::resources::ttl_usart->send(buf, rx);
 		} else {
-			vTaskDelay(1);
+			usb::cdc_awaitRx(config::cdc_itf_ttl);
 		}
 	}
 }

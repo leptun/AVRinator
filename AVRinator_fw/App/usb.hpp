@@ -14,6 +14,7 @@ void Setup();
 
 int cdc_read(uint8_t itf, uint8_t *buf, size_t count);
 int cdc_read_any(uint8_t itf, uint8_t *buf, size_t maxcount);
+void cdc_awaitRx(uint8_t itf);
 int cdc_write(uint8_t itf, const uint8_t *buf, size_t count);
 uint32_t cdc_write_push(uint8_t itf);
 void cdc_write_flush(uint8_t itf);

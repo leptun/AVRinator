@@ -20,22 +20,28 @@ int cdc_read(uint8_t itf, uint8_t *buf, size_t count) {
 		if (read == count) {
 			return 0;
 		} else {
-			util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_RX | FLAG_COMM_LINE_STATE, NULL, portMAX_DELAY);
+			cdc_awaitRx(itf);
 		}
 	}
 }
 
 int cdc_read_any(uint8_t itf, uint8_t *buf, size_t maxcount) {
 	size_t read = 0;
-	while (true) {
+	while (tud_cdc_n_available(itf) && read < maxcount) {
 		if (!(tud_ready() && tud_cdc_n_get_line_state(itf) & 0x02)) {
 			return -1;
 		}
 		read += tud_cdc_n_read(itf, buf + read, maxcount - read);
-		if (read != 0) {
-			return read;
-		} else {
-			util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_RX | FLAG_COMM_LINE_STATE, NULL, portMAX_DELAY);
+	}
+	return read;
+}
+
+void cdc_awaitRx(uint8_t itf) {
+	while (!tud_cdc_n_available(itf)) {
+		uint32_t ulNotificationValue;
+		util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_RX | FLAG_COMM_LINE_STATE, &ulNotificationValue, portMAX_DELAY);
+		if (ulNotificationValue & FLAG_COMM_LINE_STATE) {
+			return;
 		}
 	}
 }
