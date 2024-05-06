@@ -298,15 +298,22 @@ void SyncUSART::Setup() {
 void SyncUSART::rxne_handler(BaseType_t &xHigherPriorityTaskWoken) {
 	*(rxbuf++) = LL_USART_ReceiveData8(hwdef->USARTx);
 	if (--rxndtr == 0) {
-		if (task && xTaskNotifyIndexedFromISR(task, notifyIndex, FLAG_TXRX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
+		if (task && xTaskNotifyIndexedFromISR(task, notifyIndex, FLAG_RX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
 			Error_Handler();
 		}
 	}
 }
+
+void SyncUSART::tc_handler(BaseType_t &xHigherPriorityTaskWoken) {
+	if (task && xTaskNotifyIndexedFromISR(task, notifyIndex, FLAG_TX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
+		Error_Handler();
+	}
+}
+
 void SyncUSART::dmarx_handler(uint32_t flags, BaseType_t &xHigherPriorityTaskWoken) {
 	if (flags & DMA_ISR_TCIF1) {
 		rxndtr = 0;
-		if (task && xTaskNotifyIndexedFromISR(task, notifyIndex, FLAG_TXRX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
+		if (task && xTaskNotifyIndexedFromISR(task, notifyIndex, FLAG_RX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
 			Error_Handler();
 		}
 	}
@@ -322,11 +329,13 @@ void SyncUSART::txrx(uint8_t *rxbuf, const uint8_t *txbuf, size_t len) {
 
 	lock();
 	task = xTaskGetCurrentTaskHandle();
-	rxndtr = len;
-	startRx(rxbuf, len);
+	if (rxbuf) {
+		rxndtr = len;
+		startRx(rxbuf, len);
+	}
 	startTx(txbuf, len);
 
-	util::xTaskNotifyWaitBitsAnyIndexed(notifyIndex, 0, FLAG_TXRX_COMPLETE, NULL, portMAX_DELAY);
+	util::xTaskNotifyWaitBitsAllIndexed(notifyIndex, 0, FLAG_TX_COMPLETE | (rxbuf ? FLAG_RX_COMPLETE : 0), NULL, portMAX_DELAY);
 
 	unlock();
 }

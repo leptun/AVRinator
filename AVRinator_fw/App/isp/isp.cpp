@@ -25,7 +25,7 @@ static void taskISP(void *pvParameters) {
 }
 
 void Setup() {
-	config::resources::isp_usart->Setup();
+	config::resources::isp_usart.Setup();
 
 	if (xTaskCreate(
 			taskISP,

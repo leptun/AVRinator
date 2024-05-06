@@ -13,14 +13,14 @@ static TaskHandle_t taskHandleTTLtx;
 static void taskTTLrx(void *pvParameters) {
 	for (;;) {
 		uint8_t buf[64];
-		int rx = config::resources::ttl_usart->receiveAny(buf, sizeof(buf));
+		int rx = config::resources::ttl_usart.receiveAny(buf, sizeof(buf));
 		if (rx > 0) {
 			usb::cdc_write(config::cdc_itf_ttl, buf, rx);
 		}
 		else {
 			if (!usb::cdc_write_push(config::cdc_itf_ttl)) {
 				// nothing left to push, wait for more uart rx to happen
-				config::resources::ttl_usart->awaitRx();
+				config::resources::ttl_usart.awaitRx();
 			}
 		}
 	}
@@ -31,7 +31,7 @@ static void taskTTLtx(void *pvParameters) {
 		uint8_t buf[64];
 		int rx = usb::cdc_read_any(config::cdc_itf_ttl, buf, sizeof(buf));
 		if (rx > 0) {
-			config::resources::ttl_usart->send(buf, rx);
+			config::resources::ttl_usart.send(buf, rx);
 		} else {
 			usb::cdc_awaitRx(config::cdc_itf_ttl);
 		}
@@ -39,7 +39,7 @@ static void taskTTLtx(void *pvParameters) {
 }
 
 void Setup() {
-	config::resources::ttl_usart->Setup();
+	config::resources::ttl_usart.Setup();
 
 	if (xTaskCreate(
 			taskTTLrx,

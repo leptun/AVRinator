@@ -99,7 +99,8 @@ public:
 
 class SyncUSART : public USART {
 	enum EventFlags {
-		FLAG_TXRX_COMPLETE = 0x01,
+		FLAG_TX_COMPLETE = 0x01,
+		FLAG_RX_COMPLETE = 0x02,
 	};
 
 	// task that needs to be notified when events happens
@@ -109,7 +110,7 @@ class SyncUSART : public USART {
 
 	void idle_handler(BaseType_t &xHigherPriorityTaskWoken) override { Error_Handler(); }
 	void rxne_handler(BaseType_t &xHigherPriorityTaskWoken) override;
-	void tc_handler(BaseType_t &xHigherPriorityTaskWoken) override {}
+	void tc_handler(BaseType_t &xHigherPriorityTaskWoken) override;
 	void dmarx_handler(uint32_t flags, BaseType_t &xHigherPriorityTaskWoken) override;
 
 public:
