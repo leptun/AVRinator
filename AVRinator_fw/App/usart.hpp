@@ -5,60 +5,121 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <event_groups.h>
+#include <semphr.h>
 
 namespace usart {
 
 struct USART_Def {
 	void (* const MX_USARTx_Init)(void);
-	USART_TypeDef * const USARTx;
+	USART_TypeDef * const USARTx; // peripheral
 	const uint32_t periphclk;
-	uint8_t * const rxBuf;
-	const uint16_t rxBufSize;
 	const util::LL_DMA_CHANNEL rxDMA;
 	const util::LL_DMA_CHANNEL txDMA;
 };
 
 class USART {
+protected:
+	// constant definition of the peripheral
+	const USART_Def *hwdef;
+
+	// rx buffer handling
+	uint8_t *rxbuf;
+
+	// tx buffer handling
+	const uint8_t *txbuf;
+	size_t txndtr;
+
+	SemaphoreHandle_t mutex;
+	void lock();
+	void unlock();
+
+	void setupRx();
+	void setupTx();
+	void startRx(uint8_t *buf, uint16_t len);
+	void startTx(const uint8_t *buf, uint16_t len);
+	void startIdle();
+
+	virtual void idle_handler(BaseType_t &xHigherPriorityTaskWoken) = 0;
+	virtual void rxne_handler(BaseType_t &xHigherPriorityTaskWoken) = 0;
+	virtual void tc_handler(BaseType_t &xHigherPriorityTaskWoken) = 0;
+	virtual void dmarx_handler(uint32_t flags, BaseType_t &xHigherPriorityTaskWoken) = 0;
+
+public:
+	USART(const USART_Def *hwdef) : hwdef(hwdef) {}
+	USART(const USART_Def *hwdef, uint8_t *rxbuf) : hwdef(hwdef), rxbuf(rxbuf) {}
+	void Setup();
+
+	void setBaud(uint32_t baud);
+
+	void irq_usart();
+	void irq_dma_rx();
+	void irq_dma_tx();
+};
+
+class AsyncUSART : public USART {
 	enum EventFlags {
 		FLAG_RX_AVAILABLE = 0x01,
 		FLAG_RX_IDLE = 0x02,
 		FLAG_TX_COMPLETE = 0x04,
 	};
 
-	const USART_Def *hwdef;
+	const uint16_t rxBufSize;
+	// tasks that need to be notified when events happens
 	TaskHandle_t taskRx;
 	TaskHandle_t taskTx;
+
+	// rx circular buffer handling
 	uint32_t rxHead;
 	uint32_t rxTail;
-	const uint8_t *txbuf;
-	size_t txndtr;
+
+	void idle_handler(BaseType_t &xHigherPriorityTaskWoken) override;
+	void rxne_handler(BaseType_t &xHigherPriorityTaskWoken) override;
+	void tc_handler(BaseType_t &xHigherPriorityTaskWoken) override;
+	void dmarx_handler(uint32_t flags, BaseType_t &xHigherPriorityTaskWoken) override;
+
+	inline bool rx_empty() {
+		return rxHead == rxTail;
+	}
+
+	uint32_t rx_pending() {
+		return (rxHead + rxBufSize - rxTail) % rxBufSize;
+	}
+
+	void rx_push(BaseType_t &xHigherPriorityTaskWoken);
 
 public:
-	USART(const USART_Def *hwdef) : hwdef(hwdef) { }
+	AsyncUSART(const USART_Def *hwdef, uint8_t *rxbuf, uint16_t rxBufSize) : USART(hwdef, rxbuf), rxBufSize(rxBufSize) {}
 	void Setup();
 
 	void receive(uint8_t *buf, size_t len);
 	void awaitRx();
 	size_t receiveAny(uint8_t *buf, size_t maxlen);
 	void send(const uint8_t *buf, size_t len);
-	void setBaud(uint32_t baud);
-	inline bool rx_empty() {
-		return rxHead == rxTail;
-	}
-	uint32_t rx_pending() {
-		return (rxHead + hwdef->rxBufSize - rxTail) % hwdef->rxBufSize;
-	}
-
-private:
-	void rx_push(BaseType_t *pxHigherPriorityTaskWoken);
-
-public:
-	void irq_usart();
-	void irq_dma_rx();
-	void irq_dma_tx();
 };
 
-extern USART usart1;
-extern USART usart2;
+class SyncUSART : public USART {
+	enum EventFlags {
+		FLAG_TXRX_COMPLETE = 0x01,
+	};
+
+	// task that needs to be notified when events happens
+	TaskHandle_t task;
+
+	size_t rxndtr;
+
+	void idle_handler(BaseType_t &xHigherPriorityTaskWoken) override { Error_Handler(); }
+	void rxne_handler(BaseType_t &xHigherPriorityTaskWoken) override;
+	void tc_handler(BaseType_t &xHigherPriorityTaskWoken) override {}
+	void dmarx_handler(uint32_t flags, BaseType_t &xHigherPriorityTaskWoken) override;
+
+public:
+	SyncUSART(const USART_Def *hwdef) : USART(hwdef) {}
+	void Setup();
+
+	void txrx(uint8_t *rxbuf, const uint8_t *txbuf, size_t len);
+};
+
+extern SyncUSART usart1;
+extern AsyncUSART usart2;
 
 }

@@ -26,6 +26,9 @@ int cdc_read(uint8_t itf, uint8_t *buf, size_t count) {
 }
 
 int cdc_read_any(uint8_t itf, uint8_t *buf, size_t maxcount) {
+	if (!tud_ready()) {
+		return -1;
+	}
 	size_t read = 0;
 	while (tud_cdc_n_available(itf) && read < maxcount) {
 		if (!(tud_ready() && tud_cdc_n_get_line_state(itf) & 0x02)) {
@@ -37,6 +40,9 @@ int cdc_read_any(uint8_t itf, uint8_t *buf, size_t maxcount) {
 }
 
 void cdc_awaitRx(uint8_t itf) {
+	while (!tud_ready()) {
+		vTaskDelay(1);
+	}
 	while (!tud_cdc_n_available(itf)) {
 		uint32_t ulNotificationValue;
 		util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_RX | FLAG_COMM_LINE_STATE, &ulNotificationValue, portMAX_DELAY);
@@ -62,11 +68,17 @@ int cdc_write(uint8_t itf, const uint8_t *buf, size_t count) {
 }
 
 uint32_t cdc_write_push(uint8_t itf) {
+	if (!tud_ready()) {
+		return 0;
+	}
 	tud_cdc_n_write_flush(itf);
 	return CFG_TUD_CDC_TX_BUFSIZE - tud_cdc_n_write_available(itf);
 }
 
 void cdc_write_flush(uint8_t itf) {
+	while (!tud_ready()) {
+		vTaskDelay(1);
+	}
 	while (tud_cdc_n_write_available(itf) != CFG_TUD_CDC_TX_BUFSIZE) {
 		tud_cdc_n_write_flush(itf);
 		portYIELD();
