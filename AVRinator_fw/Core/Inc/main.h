@@ -79,6 +79,14 @@ void MX_USART2_UART_Init(void);
 #define USB_CC2_GPIO_Port GPIOF
 #define USB_CC1_Pin LL_GPIO_PIN_1
 #define USB_CC1_GPIO_Port GPIOF
+#define A_Pin LL_GPIO_PIN_0
+#define A_GPIO_Port GPIOA
+#define B_Pin LL_GPIO_PIN_1
+#define B_GPIO_Port GPIOA
+#define VCOM_TX_Pin LL_GPIO_PIN_2
+#define VCOM_TX_GPIO_Port GPIOA
+#define VCOM_RX_Pin LL_GPIO_PIN_3
+#define VCOM_RX_GPIO_Port GPIOA
 #define T_NRESET_Pin LL_GPIO_PIN_4
 #define T_NRESET_GPIO_Port GPIOA
 #define VSENSE_LV_Pin LL_GPIO_PIN_5
@@ -89,6 +97,12 @@ void MX_USART2_UART_Init(void);
 #define ISENSE_COMP_GPIO_Port GPIOA
 #define ISENSE_LV_Pin LL_GPIO_PIN_0
 #define ISENSE_LV_GPIO_Port GPIOB
+#define T_SCK_Pin LL_GPIO_PIN_8
+#define T_SCK_GPIO_Port GPIOA
+#define T_MOSI_Pin LL_GPIO_PIN_9
+#define T_MOSI_GPIO_Port GPIOA
+#define T_MISO_Pin LL_GPIO_PIN_10
+#define T_MISO_GPIO_Port GPIOA
 #define LED_Pin LL_GPIO_PIN_15
 #define LED_GPIO_Port GPIOA
 #define LS_OE_Pin LL_GPIO_PIN_4
