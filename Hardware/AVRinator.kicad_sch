@@ -8396,7 +8396,7 @@
 		)
 		(uuid "0fd4c3fe-97b6-46f0-add2-d7515059cfff")
 	)
-	(label "USB_SBU1"
+	(label "SWDIO"
 		(at 60.96 175.26 180)
 		(fields_autoplaced yes)
 		(effects
@@ -8506,7 +8506,7 @@
 		)
 		(uuid "3452b11b-b1a0-41fb-84f5-f89b83064c44")
 	)
-	(label "VCOM_CTS_VCC"
+	(label "A_VCC"
 		(at 248.92 48.26 0)
 		(fields_autoplaced yes)
 		(effects
@@ -8561,7 +8561,7 @@
 		)
 		(uuid "4c2f1e13-b09a-420f-bad0-b1dcb576547b")
 	)
-	(label "VCOM_RTS_VCC"
+	(label "B_VCC"
 		(at 248.92 58.42 0)
 		(fields_autoplaced yes)
 		(effects
@@ -8605,7 +8605,7 @@
 		)
 		(uuid "64d6cbd9-8ce2-4466-aa66-3f3da6fb7354")
 	)
-	(label "VCOM_RTS"
+	(label "B"
 		(at 76.2 35.56 180)
 		(fields_autoplaced yes)
 		(effects
@@ -8682,7 +8682,7 @@
 		)
 		(uuid "8b08dd9f-6886-4fc8-8200-c76b27370fbf")
 	)
-	(label "USB_SBU1"
+	(label "SWDIO"
 		(at 76.2 66.04 180)
 		(fields_autoplaced yes)
 		(effects
@@ -8814,7 +8814,7 @@
 		)
 		(uuid "ad1fa012-35fb-46e5-b92c-a59d696cad37")
 	)
-	(label "USB_SBU2"
+	(label "SWCLK"
 		(at 76.2 68.58 180)
 		(fields_autoplaced yes)
 		(effects
@@ -8847,7 +8847,7 @@
 		)
 		(uuid "beb370a2-16c6-4848-97fb-10e592ded0e1")
 	)
-	(label "USB_SBU2"
+	(label "SWCLK"
 		(at 60.96 177.8 180)
 		(fields_autoplaced yes)
 		(effects
@@ -8946,7 +8946,7 @@
 		)
 		(uuid "dfb5247e-ee63-46cc-907a-7797860bbfe6")
 	)
-	(label "VCOM_CTS"
+	(label "A"
 		(at 76.2 33.02 180)
 		(fields_autoplaced yes)
 		(effects
@@ -8957,7 +8957,7 @@
 		)
 		(uuid "e0a97426-44bd-4970-9d7f-80a1d94a7de8")
 	)
-	(label "VCOM_CTS"
+	(label "A"
 		(at 121.92 50.8 0)
 		(fields_autoplaced yes)
 		(effects
@@ -8979,7 +8979,7 @@
 		)
 		(uuid "e524903e-ab10-4ce1-8108-5928876d9090")
 	)
-	(label "VCOM_RTS_VCC"
+	(label "B_VCC"
 		(at 172.72 43.18 180)
 		(fields_autoplaced yes)
 		(effects
@@ -9078,7 +9078,7 @@
 		)
 		(uuid "fd8666b0-3aa4-4106-a1c2-93149f577469")
 	)
-	(label "VCOM_CTS_VCC"
+	(label "A_VCC"
 		(at 172.72 50.8 180)
 		(fields_autoplaced yes)
 		(effects
@@ -9089,7 +9089,7 @@
 		)
 		(uuid "fe998690-683d-402e-8673-0bf51dcf6284")
 	)
-	(label "VCOM_RTS"
+	(label "B"
 		(at 121.92 43.18 0)
 		(fields_autoplaced yes)
 		(effects
