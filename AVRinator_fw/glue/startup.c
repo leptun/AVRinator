@@ -41,5 +41,6 @@ void init_sections(void) {
 	__HAL_RCC_AHB2_FORCE_RESET();
 	__HAL_RCC_AHB2_RELEASE_RESET();
 
+	INIT_SECTION(freertos);
 	INIT_SECTION(app);
 }

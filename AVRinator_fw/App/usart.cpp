@@ -287,6 +287,7 @@ void AsyncUSART::send(const uint8_t *buf, size_t len) {
 	util::xTaskNotifyWaitBitsAnyIndexed(notifyIndex, 0, FLAG_TX_COMPLETE, NULL, portMAX_DELAY);
 
 	lock();
+	txndtr = 0;
 	taskTx = nullptr;
 	unlock();
 }
@@ -336,6 +337,7 @@ void SyncUSART::txrx(uint8_t *rxbuf, const uint8_t *txbuf, size_t len) {
 	startTx(txbuf, len);
 
 	util::xTaskNotifyWaitBitsAllIndexed(notifyIndex, 0, FLAG_TX_COMPLETE | (rxbuf ? FLAG_RX_COMPLETE : 0), NULL, portMAX_DELAY);
+	txndtr = 0;
 
 	unlock();
 }

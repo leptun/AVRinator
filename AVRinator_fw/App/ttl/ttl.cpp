@@ -7,37 +7,38 @@
 
 namespace ttl {
 
-static TaskHandle_t taskHandleTTLrx;
-static TaskHandle_t taskHandleTTLtx;
-
 static void taskTTLrx(void *pvParameters) {
 	for (;;) {
-		static uint8_t buf[config::resources::ttl_rxtransfer_size];
-		int rx = config::resources::ttl_usart.receiveAny(buf, sizeof(buf));
+		static uint8_t rxbuf[config::resources::ttl_rxtransfer_size] __attribute__((section(".buffers")));
+		int rx = config::resources::ttl_usart.receiveAny(rxbuf, sizeof(rxbuf));
 		if (rx > 0) {
-			usb::cdc_write(config::cdc_itf_ttl, buf, rx);
+			usb::cdc_write(config::cdc_itf_ttl, rxbuf, rx);
 		}
 		else if (!usb::cdc_write_push(config::cdc_itf_ttl)) {
 			// nothing left to push, wait for more uart rx to happen
 			config::resources::ttl_usart.awaitRx();
 		}
+		taskYIELD();
 	}
 }
-StackType_t TTLrx_stack[config::resources::usbd_stack_depth];
+static TaskHandle_t taskHandleTTLrx;
+StackType_t TTLrx_stack[config::resources::TTL_stack_depth] __attribute__((section(".stack")));
 StaticTask_t TTLrx_taskdef;
 
 static void taskTTLtx(void *pvParameters) {
 	for (;;) {
-		uint8_t buf[config::resources::ttl_txtransfer_size];
-		int rx = usb::cdc_read_any(config::cdc_itf_ttl, buf, sizeof(buf));
+		static uint8_t txbuf[config::resources::ttl_txtransfer_size] __attribute__((section(".buffers")));
+		int rx = usb::cdc_read_any(config::cdc_itf_ttl, txbuf, sizeof(txbuf));
 		if (rx > 0) {
-			config::resources::ttl_usart.send(buf, rx);
+			config::resources::ttl_usart.send(txbuf, rx);
 		} else {
 			usb::cdc_awaitRx(config::cdc_itf_ttl);
 		}
+		taskYIELD();
 	}
 }
-StackType_t TTLtx_stack[config::resources::usbd_stack_depth];
+static TaskHandle_t taskHandleTTLtx;
+StackType_t TTLtx_stack[config::resources::TTL_stack_depth] __attribute__((section(".stack")));
 StaticTask_t TTLtx_taskdef;
 
 void Setup() {

@@ -44,6 +44,16 @@ def main():
 
     thr.join(timeout=1.0)
     
+    global rx_data
+    
+    # f = open("data.txt", "wb")
+    # f.write(data)
+    # f.close()
+    
+    # f = open("rx_data.txt", "wb")
+    # f.write(rx_data)
+    # f.close()
+    
     if thr.is_alive():
         print("rx timeout")
         ser.cancel_read()

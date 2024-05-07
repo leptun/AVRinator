@@ -35,16 +35,15 @@
 /* Entry Point */
 ENTRY(Reset_Handler)
 
-/* Highest address of the user mode stack */
-_estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
-
 _Min_Heap_Size = 0x200; /* required amount of heap */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
 /* Memories definition */
 MEMORY
 {
-  RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 32K
+  SRAM1 (rw) : ORIGIN = 0x20000000, LENGTH = 16K
+  SRAM2 (rw) : ORIGIN = 0x20004000, LENGTH = 6K
+  CCMSRAM (rw) : ORIGIN = 0x20005800, LENGTH = 10K
   FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 64K - 2K
   EEPROM (r) : ORIGIN = ORIGIN(FLASH) + LENGTH(FLASH), LENGTH = 2K
 }
@@ -132,7 +131,31 @@ SECTIONS
     PROVIDE_HIDDEN (__fini_array_end = .);
     . = ALIGN(4);
   } >FLASH
+	
+	.freertos_bss (NOLOAD) :
+	{
+		. = ALIGN(4);
+		_freertos_bss_run_addr = .;
+		
+		*(.stack)
+		./lib/FreeRTOS-Kernel/*.o(.bss*) /* */ ./glue/FreeRTOS-Kernel/*.o(.bss*) /* */
+		
+		. = ALIGN(4);
+		_freertos_bss_end = .;
+	} >CCMSRAM
 
+	.freertos_data :
+	{
+		. = ALIGN(4);
+		_freertos_data_run_addr = .;
+		
+		./lib/FreeRTOS-Kernel/*.o(.data*) /* */ ./glue/FreeRTOS-Kernel/*.o(.data*) /* */
+		
+		. = ALIGN(4);
+		_freertos_data_end = .;
+	} >CCMSRAM AT> FLASH
+	_freertos_data_load_addr = LOADADDR(.freertos_data);
+	
 	.app_bss (NOLOAD) :
 	{
 		. = ALIGN(4);
@@ -144,7 +167,7 @@ SECTIONS
 		
 		. = ALIGN(4);
 		_app_bss_end = .;
-	} >RAM
+	} >SRAM1
 
 	.app_data :
 	{
@@ -158,18 +181,34 @@ SECTIONS
 		
 		. = ALIGN(4);
 		_app_data_end = .;
-	} >RAM AT> FLASH
+	} >SRAM1 AT> FLASH
 	_app_data_load_addr = LOADADDR(.app_data);
 	
 	._shared_user_heap :
 	{
+		_shared_bss_run_addr = .;
+		__SHARED_SRAM_segment_start__ = .;
+		. = 1;
 		. = ALIGN(4);
 		PROVIDE ( end = . );
 		PROVIDE ( _end = . );
 		. = . + _Min_Heap_Size;
 		. = ALIGN(4);
 		_eheap = .;
-	} >RAM
+	} >SRAM1
+	
+	.MSP_stack :
+	{
+		. = ALIGN(8);
+		. = . + _Min_Stack_Size;
+		. = ALIGN(8);
+		_estack = .;
+	} >SRAM1
+	
+	.buffers :
+	{
+		*(.buffers)
+	} >SRAM2
 	
 	.eeprom (NOLOAD) :
 	{

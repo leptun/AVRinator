@@ -7,11 +7,9 @@
 
 namespace isp {
 
-static TaskHandle_t taskHandleISP;
-
+static uint8_t buf[config::resources::ttl_rxtransfer_size] __attribute__((section(".buffers")));
 static void taskISP(void *pvParameters) {
 	for (;;) {
-		uint8_t buf[64];
 		int rx = usb::cdc_read_any(config::cdc_itf_isp, buf, sizeof(buf));
 		if (rx > 0) {
 			usb::cdc_write(config::cdc_itf_isp, buf, rx);
@@ -19,9 +17,11 @@ static void taskISP(void *pvParameters) {
 			// nothing left to push, wait for more cdc rx to happen
 			usb::cdc_awaitRx(config::cdc_itf_isp);
 		}
+		taskYIELD();
 	}
 }
-StackType_t ISP_stack[config::resources::usbd_stack_depth];
+static TaskHandle_t taskHandleISP;
+StackType_t ISP_stack[config::resources::ISP_stack_depth] __attribute__((section(".stack")));
 StaticTask_t ISP_taskdef;
 
 void Setup() {

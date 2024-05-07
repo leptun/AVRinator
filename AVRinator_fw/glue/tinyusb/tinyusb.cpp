@@ -8,8 +8,6 @@
 
 namespace tinyusb {
 
-static TaskHandle_t pxTaskHandle;
-
 static void usb_device_task(void *pvParameters) {
 	(void) pvParameters;
 
@@ -21,9 +19,10 @@ static void usb_device_task(void *pvParameters) {
 	while (1) {
 		// put this thread to waiting state until there is new events
 		tud_task();
+		taskYIELD();
 	}
 }
-StackType_t usbd_stack[config::resources::usbd_stack_depth];
+StackType_t usbd_stack[config::resources::usbd_stack_depth] __attribute__((section(".stack")));
 StaticTask_t usbd_taskdef;
 
 #if CFG_TUSB_DEBUG >= CFG_TUD_LOG_LEVEL
@@ -65,7 +64,7 @@ void Setup() {
 	tud_init(BOARD_TUD_RHPORT);
 
 	// Create a task for tinyusb device stack
-	if (!(pxTaskHandle = xTaskCreateStatic(
+	if (!xTaskCreateStatic(
 			usb_device_task,
 			"usbd",
 			config::resources::usbd_stack_depth,
@@ -73,7 +72,7 @@ void Setup() {
 			config::task_priorities::usbd,
 			usbd_stack,
 			&usbd_taskdef
-	))) {
+	)) {
 		Error_Handler();
 	}
 }
