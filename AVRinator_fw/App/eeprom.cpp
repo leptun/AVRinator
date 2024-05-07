@@ -13,7 +13,8 @@ namespace eeprom {
 static const Settings *lastSettings = nullptr;
 static Settings settingsCache;
 
-static TimerHandle_t applyTimerHandle;
+static TimerHandle_t eeprom_commit_timerHandle;
+static StaticTimer_t eeprom_commit_staticBuf;
 
 static void commitSettings(TimerHandle_t xTimer) {
 	if (lastSettings) {
@@ -52,7 +53,7 @@ static void commitSettings(TimerHandle_t xTimer) {
 }
 
 void Setup() {
-	applyTimerHandle = xTimerCreate("eeprom_commit", pdMS_TO_TICKS(config::eeprom_apply_delay), false, 0, commitSettings);
+	eeprom_commit_timerHandle = xTimerCreateStatic("eeprom_commit", pdMS_TO_TICKS(config::eeprom_apply_delay), false, 0, commitSettings, &eeprom_commit_staticBuf);
 
 	// find last valid settings
 	for (const Settings *settings = _eeprom; settings < _eeprom_end; settings++) {
@@ -80,10 +81,10 @@ void applySettings(bool instant) {
 	//todo apply new values to isp task
 
 	if (instant) {
-		commitSettings(applyTimerHandle);
+		commitSettings(eeprom_commit_timerHandle);
 	}
 	else {
-		if (xTimerReset(applyTimerHandle, 0) != pdPASS) { Error_Handler(); }
+		if (xTimerReset(eeprom_commit_timerHandle, 0) != pdPASS) { Error_Handler(); }
 	}
 }
 

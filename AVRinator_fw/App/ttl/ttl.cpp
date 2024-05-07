@@ -23,6 +23,8 @@ static void taskTTLrx(void *pvParameters) {
 		}
 	}
 }
+StackType_t TTLrx_stack[config::resources::usbd_stack_depth];
+StaticTask_t TTLrx_taskdef;
 
 static void taskTTLtx(void *pvParameters) {
 	for (;;) {
@@ -35,29 +37,33 @@ static void taskTTLtx(void *pvParameters) {
 		}
 	}
 }
+StackType_t TTLtx_stack[config::resources::usbd_stack_depth];
+StaticTask_t TTLtx_taskdef;
 
 void Setup() {
 	config::resources::ttl_usart.Setup();
 
-	if (xTaskCreate(
+	if (!(taskHandleTTLrx = xTaskCreateStatic(
 			taskTTLrx,
 			"TTLrx",
 			config::resources::TTL_stack_depth,
 			NULL,
 			config::task_priorities::TTLrx,
-			&taskHandleTTLrx
-	) != pdPASS) {
+			TTLrx_stack,
+			&TTLrx_taskdef
+	))) {
 		Error_Handler();
 	}
 
-	if (xTaskCreate(
+	if (!(taskHandleTTLtx = xTaskCreateStatic(
 			taskTTLtx,
 			"TTLtx",
 			config::resources::TTL_stack_depth,
 			NULL,
 			config::task_priorities::TTLtx,
-			&taskHandleTTLtx
-	) != pdPASS) {
+			TTLtx_stack,
+			&TTLtx_taskdef
+	))) {
 		Error_Handler();
 	}
 }

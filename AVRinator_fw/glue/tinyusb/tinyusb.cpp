@@ -23,6 +23,8 @@ static void usb_device_task(void *pvParameters) {
 		tud_task();
 	}
 }
+StackType_t usbd_stack[config::resources::usbd_stack_depth];
+StaticTask_t usbd_taskdef;
 
 #if CFG_TUSB_DEBUG >= CFG_TUD_LOG_LEVEL
   #define DRIVER_NAME(_name)    .name = _name,
@@ -63,14 +65,15 @@ void Setup() {
 	tud_init(BOARD_TUD_RHPORT);
 
 	// Create a task for tinyusb device stack
-	if (xTaskCreate(
+	if (!(pxTaskHandle = xTaskCreateStatic(
 			usb_device_task,
 			"usbd",
 			config::resources::usbd_stack_depth,
 			NULL,
 			config::task_priorities::usbd,
-			&pxTaskHandle
-	) != pdPASS) {
+			usbd_stack,
+			&usbd_taskdef
+	))) {
 		Error_Handler();
 	}
 }

@@ -30,6 +30,7 @@ protected:
 	size_t txndtr;
 
 	SemaphoreHandle_t mutex;
+	StaticSemaphore_t mutex_staticBuf;
 	void lock();
 	void unlock();
 

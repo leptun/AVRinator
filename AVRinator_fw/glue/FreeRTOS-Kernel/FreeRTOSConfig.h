@@ -80,10 +80,10 @@ extern uint32_t SystemCoreClock;
 #define configHEAP_CLEAR_MEMORY_ON_FREE          1
 
 /* Memory allocation related definitions. */
-#define configSUPPORT_STATIC_ALLOCATION             0
-#define configSUPPORT_DYNAMIC_ALLOCATION            1
-#define configKERNEL_PROVIDED_STATIC_MEMORY         0
-#define configTOTAL_HEAP_SIZE                       ((size_t)8192)
+#define configSUPPORT_STATIC_ALLOCATION             1
+#define configSUPPORT_DYNAMIC_ALLOCATION            0
+#define configKERNEL_PROVIDED_STATIC_MEMORY         1
+#define configTOTAL_HEAP_SIZE                       ((size_t)0)
 #define configAPPLICATION_ALLOCATED_HEAP            0
 #define configSTACK_ALLOCATION_FROM_SEPARATE_HEAP   0
 #define configENABLE_HEAP_PROTECTOR                 0

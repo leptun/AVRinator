@@ -26,9 +26,9 @@ static constexpr uint8_t cdc_itf_isp = 0;
 static constexpr uint8_t cdc_itf_ttl = 1;
 
 namespace resources {
-static constexpr size_t ISP_stack_depth = configMINIMAL_STACK_SIZE;
-static constexpr size_t TTL_stack_depth = configMINIMAL_STACK_SIZE;
-static constexpr size_t usbd_stack_depth = (3*configMINIMAL_STACK_SIZE/2) * (CFG_TUSB_DEBUG ? 2 : 1);
+static constexpr configSTACK_DEPTH_TYPE ISP_stack_depth = configMINIMAL_STACK_SIZE;
+static constexpr configSTACK_DEPTH_TYPE TTL_stack_depth = configMINIMAL_STACK_SIZE;
+static constexpr configSTACK_DEPTH_TYPE usbd_stack_depth = (3*configMINIMAL_STACK_SIZE/2) * (CFG_TUSB_DEBUG ? 2 : 1);
 
 static constexpr usart::SyncUSART& isp_usart = usart::usart1;
 

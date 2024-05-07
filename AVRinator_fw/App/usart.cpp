@@ -90,7 +90,7 @@ void USART::startIdle() {
 }
 
 void USART::Setup() {
-	mutex = xSemaphoreCreateRecursiveMutex();
+	mutex = xSemaphoreCreateRecursiveMutexStatic(&mutex_staticBuf);
 	if (!mutex) {
 		Error_Handler();
 	}

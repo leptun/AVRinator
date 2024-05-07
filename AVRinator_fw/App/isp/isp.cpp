@@ -21,18 +21,21 @@ static void taskISP(void *pvParameters) {
 		}
 	}
 }
+StackType_t ISP_stack[config::resources::usbd_stack_depth];
+StaticTask_t ISP_taskdef;
 
 void Setup() {
 	config::resources::isp_usart.Setup();
 
-	if (xTaskCreate(
+	if (!(taskHandleISP = xTaskCreateStatic(
 			taskISP,
 			"ISP",
 			config::resources::ISP_stack_depth,
 			NULL,
 			config::task_priorities::ISP,
-			&taskHandleISP
-	) != pdPASS) {
+			ISP_stack,
+			&ISP_taskdef
+	))) {
 		Error_Handler();
 	}
 }
