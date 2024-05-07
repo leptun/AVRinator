@@ -49,6 +49,12 @@ void glue_configPOST_SLEEP_PROCESSING(void) {
 }
 
 extern "C"
+void NMI_Handler(void) {
+	__asm("BKPT #0\n");
+	LL_SYSCFG_ClearFlag_SP();
+}
+
+extern "C"
 int __io_putchar(int ch) {
 	// Write character to ITM ch.0
 	ITM_SendChar(ch);
