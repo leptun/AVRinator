@@ -15,11 +15,9 @@ static void taskISP(void *pvParameters) {
 		int rx = usb::cdc_read_any(config::cdc_itf_isp, buf, sizeof(buf));
 		if (rx > 0) {
 			usb::cdc_write(config::cdc_itf_isp, buf, rx);
-		} else {
-			if (!usb::cdc_write_push(config::cdc_itf_isp)) {
-				// nothing left to push, wait for more cdc rx to happen
-				usb::cdc_awaitRx(config::cdc_itf_isp);
-			}
+		} else if (!usb::cdc_write_push(config::cdc_itf_isp)) {
+			// nothing left to push, wait for more cdc rx to happen
+			usb::cdc_awaitRx(config::cdc_itf_isp);
 		}
 	}
 }

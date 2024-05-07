@@ -12,23 +12,21 @@ static TaskHandle_t taskHandleTTLtx;
 
 static void taskTTLrx(void *pvParameters) {
 	for (;;) {
-		uint8_t buf[64];
+		static uint8_t buf[config::resources::ttl_rxtransfer_size];
 		int rx = config::resources::ttl_usart.receiveAny(buf, sizeof(buf));
 		if (rx > 0) {
 			usb::cdc_write(config::cdc_itf_ttl, buf, rx);
 		}
-		else {
-			if (!usb::cdc_write_push(config::cdc_itf_ttl)) {
-				// nothing left to push, wait for more uart rx to happen
-				config::resources::ttl_usart.awaitRx();
-			}
+		else if (!usb::cdc_write_push(config::cdc_itf_ttl)) {
+			// nothing left to push, wait for more uart rx to happen
+			config::resources::ttl_usart.awaitRx();
 		}
 	}
 }
 
 static void taskTTLtx(void *pvParameters) {
 	for (;;) {
-		uint8_t buf[64];
+		uint8_t buf[config::resources::ttl_txtransfer_size];
 		int rx = usb::cdc_read_any(config::cdc_itf_ttl, buf, sizeof(buf));
 		if (rx > 0) {
 			config::resources::ttl_usart.send(buf, rx);

@@ -83,7 +83,7 @@ extern uint32_t SystemCoreClock;
 #define configSUPPORT_STATIC_ALLOCATION             0
 #define configSUPPORT_DYNAMIC_ALLOCATION            1
 #define configKERNEL_PROVIDED_STATIC_MEMORY         0
-#define configTOTAL_HEAP_SIZE                       ((size_t)16384)
+#define configTOTAL_HEAP_SIZE                       ((size_t)8192)
 #define configAPPLICATION_ALLOCATED_HEAP            0
 #define configSTACK_ALLOCATION_FROM_SEPARATE_HEAP   0
 #define configENABLE_HEAP_PROTECTOR                 0
@@ -109,7 +109,7 @@ extern uint32_t SystemCoreClock;
 #define configUSE_TIMERS                         1
 #define configTIMER_TASK_PRIORITY                0
 #define configTIMER_QUEUE_LENGTH                 10
-#define configTIMER_TASK_STACK_DEPTH             256
+#define configTIMER_TASK_STACK_DEPTH             128
 
 /* Interrupt nesting behaviour configuration. */
 #define vPortSVCHandler SVC_Handler
