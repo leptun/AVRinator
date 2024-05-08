@@ -299,6 +299,7 @@ void SyncUSART::Setup() {
 void SyncUSART::rxne_handler(BaseType_t &xHigherPriorityTaskWoken) {
 	*(rxbuf++) = LL_USART_ReceiveData8(hwdef->USARTx);
 	if (--rxndtr == 0) {
+		LL_USART_DisableDirectionRx(hwdef->USARTx);
 		if (task && xTaskNotifyIndexedFromISR(task, notifyIndex, FLAG_RX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
 			Error_Handler();
 		}
@@ -356,7 +357,7 @@ extern "C" void USART1_IRQHandler(void) { usart1.irq_usart(); }
 extern "C" void DMA1_Channel1_IRQHandler(void) { usart1.irq_dma_rx(); }
 extern "C" void DMA1_Channel2_IRQHandler(void) { usart1.irq_dma_tx(); }
 
-static uint8_t usart2_rxbuf[config::resources::ttl_rxbuf_size];
+static uint8_t usart2_rxbuf[config::resources::ttl_rxbuf_size] __attribute__((section(".buffers")));
 static constexpr USART_Def usart2_def = {
 	MX_USART2_UART_Init,
 	util::ioCast<USART_TypeDef>(USART2_BASE),

@@ -77,9 +77,7 @@ Settings *getSettings() {
 	return &settingsCache;
 }
 
-void applySettings(bool instant) {
-	//todo apply new values to isp task
-
+void saveSettings(bool instant) {
 	if (instant) {
 		commitSettings(eeprom_commit_timerHandle);
 	}
@@ -105,7 +103,7 @@ void resetToDefaults() {
 	settingsCache.vcc_3v3_max = pavr2::mvToRaw(3872);
 	settingsCache.vcc_5v_min = pavr2::mvToRaw(4128);
 	settingsCache.vcc_5v_max = pavr2::mvToRaw(5856);
-	applySettings(true);
+	saveSettings(true);
 }
 
 }

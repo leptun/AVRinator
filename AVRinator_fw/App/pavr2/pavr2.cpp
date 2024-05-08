@@ -3,6 +3,9 @@
 #include "eeprom.hpp"
 #include <main.h>
 #include "AppMain.hpp"
+#include <isp/isp.hpp>
+#include <power.hpp>
+#include <adc.hpp>
 
 namespace pavr2 {
 
@@ -54,7 +57,7 @@ void setSetting(uint8_t id, uint8_t value) {
 	case PAVR2_SETTING_VCC_5V_MIN:
 	case PAVR2_SETTING_VCC_5V_MAX:
 		settings->raw[id - 1] = value;
-		eeprom::applySettings();
+		eeprom::saveSettings();
 		break;
 	case PAVR2_SETTING_NOT_INITIALIZED:
 		eeprom::resetToDefaults();
@@ -62,6 +65,7 @@ void setSetting(uint8_t id, uint8_t value) {
 	default:
 		break;
 	}
+	AppMain::applySettings(settings);
 }
 
 uint8_t getVariable(uint8_t id) {
@@ -83,14 +87,23 @@ uint8_t getVariable(uint8_t id) {
 			return PAVR2_RESET_POWER_UP;
 		}
 	case PAVR2_VARIABLE_PROGRAMMING_ERROR:
+		return isp::getError();
 	case PAVR2_VARIABLE_TARGET_VCC_MEASURED_MIN:
+		return adc::getMinMaxTargetVCC().min / PAVR2_VOLTAGE_UNITS;
 	case PAVR2_VARIABLE_TARGET_VCC_MEASURED_MAX:
+		return adc::getMinMaxTargetVCC().max / PAVR2_VOLTAGE_UNITS;
 	case PAVR2_VARIABLE_PROGRAMMER_VDD_MEASURED_MIN:
+		return adc::getMinMaxVDD().min / PAVR2_VOLTAGE_UNITS;
 	case PAVR2_VARIABLE_PROGRAMMER_VDD_MEASURED_MAX:
+		return adc::getMinMaxVDD().max / PAVR2_VOLTAGE_UNITS;
 	case PAVR2_VARIABLE_TARGET_VCC:
+		return adc::getMinMaxTargetVCC().latest / PAVR2_VOLTAGE_UNITS;
 	case PAVR2_VARIABLE_PROGRAMMER_VDD:
+		return adc::getMinMaxVDD().latest / PAVR2_VOLTAGE_UNITS;
 	case PAVR2_VARIABLE_REGULATOR_LEVEL:
+		return power::getTargetVoltage();
 	case PAVR2_VARIABLE_IN_PROGRAMMING_MODE:
+		return isp::getProgrammingEnabled();
 	default:
 		return 0;
 	}

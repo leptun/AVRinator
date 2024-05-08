@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <FreeRTOS.h>
 #include <pins.hpp>
+#include <limits>
 
 extern uint8_t null_ptr;
 
@@ -10,6 +11,25 @@ namespace util {
 
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 #define ALIGN_CACHE __attribute__ ((aligned(32)))
+
+template <typename T>
+struct MinMax {
+	T latest;
+	T min;
+	T max;
+
+	constexpr MinMax() : min(std::numeric_limits<T>::max()), max(std::numeric_limits<T>::lowest()) {}
+
+	void update(T val) {
+		latest = val;
+		if (val < min) {
+			min = val;
+		}
+		if (val > max) {
+			max = val;
+		}
+	}
+};
 
 class TIM_CHAN_PAIR {
 public:
@@ -77,10 +97,13 @@ public:
 	}
 };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 template<typename T>
 constexpr T * ioCast(unsigned long addr) {
 	return static_cast<T *>(static_cast<void *>(&null_ptr + addr));
 }
+#pragma GCC diagnostic pop
 
 constexpr uint32_t getMPURegionSizeSettingCxpr(uint32_t ulActualSizeInBytes)
 {

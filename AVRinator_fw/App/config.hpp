@@ -31,6 +31,7 @@ static constexpr configSTACK_DEPTH_TYPE TTL_stack_depth = configMINIMAL_STACK_SI
 static constexpr configSTACK_DEPTH_TYPE usbd_stack_depth = 256 * (CFG_TUSB_DEBUG ? 2 : 1);
 
 static constexpr usart::SyncUSART& isp_usart = usart::usart1;
+static constexpr size_t isp_dataBuf_size = 512;
 
 static constexpr usart::AsyncUSART& ttl_usart = usart::usart2;
 static constexpr size_t ttl_rxbuf_size = 2048;
@@ -45,6 +46,11 @@ static constexpr UBaseType_t TTLrx = 2;
 static constexpr UBaseType_t TTLtx = 3;
 }
 
-static constexpr uint32_t eeprom_apply_delay = 1000;
+namespace adc {
+static constexpr uint32_t resolution = LL_ADC_RESOLUTION_12B;
+static constexpr uint32_t adc_regular_period = 10;
+}
+
+static constexpr uint32_t eeprom_apply_delay = 200;
 
 }

@@ -37,7 +37,7 @@ static_assert(sizeof(Settings) % 8 == 0, "Settings not a multiple of double word
 
 void Setup();
 Settings *getSettings();
-void applySettings(bool instant = false);
+void saveSettings(bool instant = false);
 void resetToDefaults();
 
 }
