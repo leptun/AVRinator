@@ -24,11 +24,10 @@
  */
 
 #include "tusb.h"
+#include <pavr2/pavr2_protocol.h>
 
 extern size_t board_usb_get_serial(uint16_t desc_str1[], size_t max_chars);
 
-#define USB_VID   0x1FFB
-#define USB_PID   0x00BB
 #define USB_BCD   0x0102
 
 //--------------------------------------------------------------------+
@@ -47,8 +46,8 @@ tusb_desc_device_t const desc_device =
     .bDeviceProtocol    = MISC_PROTOCOL_IAD,
     .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
 
-    .idVendor           = USB_VID,
-    .idProduct          = USB_PID,
+    .idVendor           = PAVR2_USB_VENDOR_ID,
+    .idProduct          = PAVR2_USB_PRODUCT_ID_V2_1,
     .bcdDevice          = USB_BCD,
 
     .iManufacturer      = 0x01,
