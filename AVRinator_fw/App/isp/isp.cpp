@@ -8,11 +8,13 @@
 
 namespace isp {
 
-namespace constants {
-static uint8_t stk500_hwversion;
-static uint8_t stk500_swVersionMajor;
-static uint8_t stk500_swVersionMinor;
+namespace param {
 static constexpr uint8_t signature[] = "AVRISP_2";
+static constexpr uint16_t buildNumber = 0;
+static uint8_t hwVersion;
+static uint8_t swVersionMajor;
+static uint8_t swVersionMinor;
+static uint8_t vTarget;
 }
 
 namespace state {
@@ -64,14 +66,44 @@ class CommandParser {
 	void processCommand() {
 		switch(dataBuf[0]) {
 		case CMD_SIGN_ON: {
+			dataBuf[2] = sizeof(param::signature) - 1;
+			memcpy(&dataBuf[3], param::signature, sizeof(param::signature) - 1);
+			header.dataLen = 3 + (sizeof(param::signature) - 1);
 			dataBuf[1] = STATUS_CMD_OK;
-			dataBuf[2] = sizeof(constants::signature) - 1;
-			memcpy(&dataBuf[3], constants::signature, sizeof(constants::signature) - 1);
-			header.dataLen = 1 + 1 + 1 + (sizeof(constants::signature) - 1);
+		} break;
+		case CMD_GET_PARAMETER: {
+			switch(dataBuf[1]) {
+			case PARAM_BUILD_NUMBER_LOW:
+				dataBuf[2] = (uint8_t)(param::buildNumber);
+				goto success;
+			case PARAM_BUILD_NUMBER_HIGH:
+				dataBuf[2] = (uint8_t)(param::buildNumber >> 8);
+				goto success;
+			case PARAM_HW_VER:
+				dataBuf[2] = param::hwVersion;
+				goto success;
+			case PARAM_SW_MAJOR:
+				dataBuf[2] = param::swVersionMajor;
+				goto success;
+			case PARAM_SW_MINOR:
+				dataBuf[2] = param::swVersionMinor;
+				goto success;
+			case PARAM_VTARGET:
+				dataBuf[2] = param::vTarget;
+				goto success;
+			success:
+				dataBuf[1] = STATUS_CMD_OK;
+				header.dataLen = 3;
+				break;
+			default:
+				dataBuf[1] = STATUS_CMD_FAILED;
+				header.dataLen = 2;
+			}
+
 		} break;
 		default:
-			header.dataLen = 1 + 1;
-			dataBuf[1] = STATUS_CMD_FAILED;
+			header.dataLen = 2;
+			dataBuf[1] = STATUS_CMD_UNKNOWN;
 		}
 
 		// Send response
