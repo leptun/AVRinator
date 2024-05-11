@@ -19,6 +19,8 @@ void Setup() {
 
 	eeprom::Setup();
 	power::Setup();
+	config::resources::isp_usart.Setup();
+	config::resources::ttl_usart.Setup();
 	usb::Setup();
 	isp::Setup();
 	ttl::Setup();

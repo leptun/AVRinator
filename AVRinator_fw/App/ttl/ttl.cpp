@@ -12,7 +12,7 @@ static void taskTTLrx(void *pvParameters) {
 		static uint8_t rxbuf[config::resources::ttl_rxtransfer_size] __attribute__((section(".buffers")));
 		int rx = config::resources::ttl_usart.receiveAny(rxbuf, sizeof(rxbuf));
 		if (rx > 0) {
-			usb::cdc_write(config::cdc_itf_ttl, rxbuf, rx);
+			usb::cdc_write(config::cdc_itf_ttl, rxbuf, rx, portMAX_DELAY);
 		}
 		else if (!usb::cdc_write_push(config::cdc_itf_ttl)) {
 			// nothing left to push, wait for more uart rx to happen
@@ -42,8 +42,6 @@ StackType_t TTLtx_stack[config::resources::TTL_stack_depth] __attribute__((secti
 StaticTask_t TTLtx_taskdef;
 
 void Setup() {
-	config::resources::ttl_usart.Setup();
-
 	if (!(taskHandleTTLrx = xTaskCreateStatic(
 			taskTTLrx,
 			"TTLrx",
@@ -70,12 +68,12 @@ void Setup() {
 }
 
 void Notify(uint32_t flags) {
-	if (flags & (usb::FLAG_COMM_TX | usb::FLAG_COMM_LINE_STATE)) {
+	if (flags & usb::FLAG_COMM_TX) {
 		if (taskHandleTTLrx && xTaskNotifyIndexed(taskHandleTTLrx, 1, flags, eSetBits) != pdPASS) {
 			Error_Handler();
 		}
 	}
-	else if (flags & (usb::FLAG_COMM_RX | usb::FLAG_COMM_LINE_STATE)) {
+	else if (flags & usb::FLAG_COMM_RX) {
 		if (taskHandleTTLtx && xTaskNotifyIndexed(taskHandleTTLtx, 1, flags, eSetBits) != pdPASS) {
 			Error_Handler();
 		}

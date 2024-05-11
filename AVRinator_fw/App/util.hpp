@@ -29,6 +29,10 @@ struct MinMax {
 			max = val;
 		}
 	}
+	void reset() {
+		min = latest;
+		max = latest;
+	}
 };
 
 class TIM_CHAN_PAIR {

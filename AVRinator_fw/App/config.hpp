@@ -31,7 +31,6 @@ static constexpr configSTACK_DEPTH_TYPE TTL_stack_depth = configMINIMAL_STACK_SI
 static constexpr configSTACK_DEPTH_TYPE usbd_stack_depth = 256 * (CFG_TUSB_DEBUG ? 2 : 1);
 
 static constexpr usart::SyncUSART& isp_usart = usart::usart1;
-static constexpr size_t isp_dataBuf_size = 512;
 
 static constexpr usart::AsyncUSART& ttl_usart = usart::usart2;
 static constexpr size_t ttl_rxbuf_size = 2048;

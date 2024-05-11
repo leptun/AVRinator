@@ -10,17 +10,24 @@ void Setup() {
 	tinyusb::Setup();
 }
 
-int cdc_read(uint8_t itf, uint8_t *buf, size_t count) {
+int cdc_read(uint8_t itf, uint8_t *buf, size_t count, TickType_t xTicksToWait) {
+	TimeOut_t xTimeOut;
+	vTaskSetTimeOutState(&xTimeOut);
 	size_t read = 0;
 	while (true) {
-		if (!(tud_ready() && tud_cdc_n_get_line_state(itf) & 0x02)) {
+		if (!tud_ready()) {
 			return -1;
 		}
 		read += tud_cdc_n_read(itf, buf + read, count - read);
 		if (read == count) {
 			return 0;
 		} else {
-			cdc_awaitRx(itf);
+			if (xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) != pdFALSE) {
+				return -2;
+			}
+			if (!cdc_awaitRx(itf, xTicksToWait)) {
+				return -2; //timeout
+			}
 		}
 	}
 }
@@ -31,7 +38,7 @@ int cdc_read_any(uint8_t itf, uint8_t *buf, size_t maxcount) {
 	}
 	size_t read = 0;
 	while (tud_cdc_n_available(itf) && read < maxcount) {
-		if (!(tud_ready() && tud_cdc_n_get_line_state(itf) & 0x02)) {
+		if (!tud_ready()) {
 			return -1;
 		}
 		read += tud_cdc_n_read(itf, buf + read, maxcount - read);
@@ -39,30 +46,40 @@ int cdc_read_any(uint8_t itf, uint8_t *buf, size_t maxcount) {
 	return read;
 }
 
-void cdc_awaitRx(uint8_t itf) {
-	while (!tud_ready()) {
-		vTaskDelay(1);
+bool cdc_awaitRx(uint8_t itf, TickType_t xTicksToWait) {
+	TimeOut_t xTimeOut;
+	vTaskSetTimeOutState(&xTimeOut);
+	if (!tud_ready()) {
+		return false;
 	}
 	while (!tud_cdc_n_available(itf)) {
-		uint32_t ulNotificationValue;
-		util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_RX | FLAG_COMM_LINE_STATE, &ulNotificationValue, portMAX_DELAY);
-		if (ulNotificationValue & FLAG_COMM_LINE_STATE) {
-			return;
+		if (xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) != pdFALSE) {
+			return false;
 		}
+		uint32_t ulNotificationValue;
+		util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_RX, &ulNotificationValue, portMAX_DELAY);
 	}
+	return true;
 }
 
-int cdc_write(uint8_t itf, const uint8_t *buf, size_t count) {
+int cdc_write(uint8_t itf, const uint8_t *buf, size_t count, TickType_t xTicksToWait) {
+	TimeOut_t xTimeOut;
+	vTaskSetTimeOutState(&xTimeOut);
 	size_t written = 0;
 	while (true) {
-		if (!(tud_ready() && tud_cdc_n_get_line_state(itf) & 0x02)) {
+		if (!tud_ready()) {
 			return -1;
 		}
 		written += tud_cdc_n_write(itf, buf + written, count - written);
 		if (written == count) {
 			return 0;
 		} else {
-			util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_TX | FLAG_COMM_LINE_STATE, NULL, portMAX_DELAY);
+			if (xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) != pdFALSE) {
+				return -2;
+			}
+			if (util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_TX, NULL, portMAX_DELAY) != pdTRUE) {
+				return -2;
+			}
 		}
 	}
 }
@@ -75,14 +92,18 @@ uint32_t cdc_write_push(uint8_t itf) {
 	return CFG_TUD_CDC_TX_BUFSIZE - tud_cdc_n_write_available(itf);
 }
 
-void cdc_write_flush(uint8_t itf) {
-	while (!tud_ready()) {
-		vTaskDelay(1);
+bool cdc_write_flush(uint8_t itf) {
+	if (!tud_ready()) {
+		return false;
 	}
 	while (tud_cdc_n_write_available(itf) != CFG_TUD_CDC_TX_BUFSIZE) {
+		if (!tud_ready()) {
+			return -1;
+		}
 		tud_cdc_n_write_flush(itf);
 		portYIELD();
 	}
+	return true;
 }
 
 extern "C"
@@ -93,11 +114,6 @@ void tud_cdc_rx_cb(uint8_t itf) {
 extern "C"
 void tud_cdc_tx_complete_cb(uint8_t itf) {
 	AppMain::Notify(itf, FLAG_COMM_TX);
-}
-
-extern "C"
-void tud_cdc_line_state_cb(uint8_t itf, bool dtr, bool rts) {
-	AppMain::Notify(itf, FLAG_COMM_LINE_STATE);
 }
 
 extern "C"
