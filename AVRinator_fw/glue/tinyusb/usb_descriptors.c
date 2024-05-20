@@ -24,7 +24,7 @@
  */
 
 #include "tusb.h"
-#include <pavr2/pavr2_protocol.h>
+#include <defs/pavr2_protocol.h>
 
 extern size_t board_usb_get_serial(uint16_t desc_str1[], size_t max_chars);
 

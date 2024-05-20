@@ -1,7 +1,7 @@
 #include "usb.hpp"
 #include <tinyusb.hpp>
 #include "config.hpp"
-#include "pavr2/pavr2.hpp"
+#include "pavr2.hpp"
 #include "AppMain.hpp"
 
 namespace usb {

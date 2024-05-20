@@ -6,8 +6,8 @@
 #include "eeprom.hpp"
 #include "power.hpp"
 #include "usb.hpp"
-#include "ttl/ttl.hpp"
-#include "isp/isp.hpp"
+#include "ttl.hpp"
+#include "isp.hpp"
 
 namespace AppMain {
 

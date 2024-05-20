@@ -1,7 +1,7 @@
 #include "usart.hpp"
 #include <stdio.h>
-#include <config.hpp>
-#include <util.hpp>
+#include "config.hpp"
+#include "util.hpp"
 
 namespace usart {
 

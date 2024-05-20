@@ -1,9 +1,9 @@
 #include "isp.hpp"
 #include <FreeRTOS.h>
 #include <task.h>
-#include <config.hpp>
-#include <usb.hpp>
-#include "command.h"
+#include "config.hpp"
+#include "usb.hpp"
+#include "defs/command.h"
 
 
 namespace isp {

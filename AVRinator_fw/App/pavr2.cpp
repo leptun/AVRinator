@@ -1,11 +1,11 @@
 #include "pavr2.hpp"
-#include "pavr2_protocol.h"
+#include "defs/pavr2_protocol.h"
 #include "eeprom.hpp"
 #include <main.h>
 #include "AppMain.hpp"
-#include <isp/isp.hpp>
-#include <power.hpp>
-#include <adc.hpp>
+#include "isp.hpp"
+#include "power.hpp"
+#include "adc.hpp"
 
 namespace pavr2 {
 

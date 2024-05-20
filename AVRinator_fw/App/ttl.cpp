@@ -1,8 +1,8 @@
 #include "ttl.hpp"
 #include <FreeRTOS.h>
 #include <task.h>
-#include <config.hpp>
-#include <usb.hpp>
+#include "config.hpp"
+#include "usb.hpp"
 
 
 namespace ttl {

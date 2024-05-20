@@ -1,5 +1,5 @@
 #include "power.hpp"
-#include <pins.hpp>
+#include "pins.hpp"
 #include <inttypes.h>
 #include <FreeRTOS.h>
 #include <task.h>

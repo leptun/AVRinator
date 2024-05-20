@@ -1,6 +1,6 @@
 #pragma once
 #include <inttypes.h>
-#include "pavr2_protocol.h"
+#include "defs/pavr2_protocol.h"
 
 namespace pavr2 {
 

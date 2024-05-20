@@ -1,7 +1,7 @@
 #pragma once
 #include <inttypes.h>
 #include <main.h>
-#include <util.hpp>
+#include "util.hpp"
 #include <FreeRTOS.h>
 #include <task.h>
 #include <event_groups.h>

@@ -2,7 +2,7 @@
 #include "main.h"
 #include <inttypes.h>
 #include <FreeRTOS.h>
-#include <pins.hpp>
+#include "pins.hpp"
 #include <limits>
 
 extern uint8_t null_ptr;
