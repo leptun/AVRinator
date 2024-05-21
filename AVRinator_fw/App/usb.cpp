@@ -57,7 +57,7 @@ bool cdc_awaitRx(uint8_t itf, TickType_t xTicksToWait) {
 			return false;
 		}
 		uint32_t ulNotificationValue;
-		util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_RX, &ulNotificationValue, portMAX_DELAY);
+		util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_RX, &ulNotificationValue, xTicksToWait);
 	}
 	return true;
 }
@@ -77,7 +77,7 @@ int cdc_write(uint8_t itf, const uint8_t *buf, size_t count, TickType_t xTicksTo
 			if (xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) != pdFALSE) {
 				return -2;
 			}
-			if (util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_TX, NULL, portMAX_DELAY) != pdTRUE) {
+			if (util::xTaskNotifyWaitBitsAnyIndexed(1, 0, FLAG_COMM_TX, NULL, xTicksToWait) != pdTRUE) {
 				return -2;
 			}
 		}

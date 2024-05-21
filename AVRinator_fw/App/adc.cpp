@@ -68,6 +68,8 @@ void Setup() {
 	LL_ADC_StartCalibration(ADC2, LL_ADC_SINGLE_ENDED);
 	while (LL_ADC_IsCalibrationOnGoing(ADC2)) { vTaskDelay(1); }
 
+	vTaskDelay(10); //delay between calibration and ADC enabled
+
 	LL_DMA_SetPeriphAddress(adcDMA.DMAx, adcDMA.Channel, (uint32_t)&ADC12_COMMON->CDR);
 	adcDMA.clearIRQ(DMA_ISR_TEIF1 | DMA_ISR_TCIF1);
 	LL_DMA_EnableIT_TE(adcDMA.DMAx, adcDMA.Channel);

@@ -31,10 +31,13 @@ static void taskTTLtx(void *pvParameters) {
 		int rx = usb::cdc_read_any(config::cdc_itf_ttl, txbuf, sizeof(txbuf));
 		if (rx > 0) {
 			config::resources::ttl_usart.send(txbuf, rx);
-		} else {
+		}
+		else if (rx == 0) {
 			usb::cdc_awaitRx(config::cdc_itf_ttl);
 		}
-		taskYIELD();
+		else {
+			vTaskDelay(1);
+		}
 	}
 }
 static TaskHandle_t taskHandleTTLtx;

@@ -65,7 +65,6 @@ extern uint32_t SystemCoreClock;
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION  1
 #define configUSE_TICKLESS_IDLE                  1
 #define configCPU_CLOCK_HZ                       ( SystemCoreClock )
-#define configSYSTICK_CLOCK_HZ                   ( configCPU_CLOCK_HZ / 8 )
 #define configTICK_RATE_HZ                       ((TickType_t)1000)
 #define configMAX_PRIORITIES                     ( 32 )
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)256)

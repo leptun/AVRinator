@@ -315,6 +315,7 @@ void SyncUSART::tc_handler(BaseType_t &xHigherPriorityTaskWoken) {
 void SyncUSART::dmarx_handler(uint32_t flags, BaseType_t &xHigherPriorityTaskWoken) {
 	if (flags & DMA_ISR_TCIF1) {
 		rxndtr = 0;
+		LL_DMA_DisableChannel(hwdef->rxDMA.DMAx, hwdef->rxDMA.Channel);
 		if (task && xTaskNotifyIndexedFromISR(task, notifyIndex, FLAG_RX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
 			Error_Handler();
 		}
@@ -362,7 +363,6 @@ static constexpr USART_Def usart2_def = {
 	MX_USART2_UART_Init,
 	util::ioCast<USART_TypeDef>(USART2_BASE),
 	config::clocks::pclk1,
-
 	util::LL_DMA_CHANNEL(util::ioCast<DMA_TypeDef>(DMA2_BASE), LL_DMA_CHANNEL_1), //rx
 	util::LL_DMA_CHANNEL(util::ioCast<DMA_TypeDef>(DMA2_BASE), LL_DMA_CHANNEL_2), //tx
 };
