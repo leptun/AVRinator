@@ -37,6 +37,7 @@ class CommandParser {
 	static constexpr TickType_t parserTimeout = pdMS_TO_TICKS(2000);
 	static constexpr TickType_t sendTimeout = pdMS_TO_TICKS(500);
 	static constexpr TickType_t bsyRdyTimeout = pdMS_TO_TICKS(500);
+	static constexpr uint32_t maxPageSize = 256; //bytes
 
 	struct __attribute__((packed)) Header {
 		uint8_t start;
@@ -49,6 +50,19 @@ class CommandParser {
 		}
 	} header;
 	uint8_t dataBuf[275];
+
+	struct __attribute__((packed)) IspCommand {
+		uint8_t val[4];
+
+		uint8_t& operator[] (std::size_t idx) { return val[idx]; }
+		const uint8_t& operator[] (std::size_t idx) const { return val[idx]; }
+
+		uint8_t *raw() { return val; }
+		const uint8_t *raw() const { return val; }
+	};
+
+	// used for sending and receiving data in bursts
+	IspCommand cmdBuf[maxPageSize];
 
 	static uint8_t updateChecksum(uint8_t checksum, const void *data, size_t len) {
 		const uint8_t *data8_t = (const uint8_t *)data;
@@ -83,8 +97,8 @@ class CommandParser {
 		TickType_t xTicksToWait = bsyRdyTimeout;
 
 		while (xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) == pdFALSE) {
-			uint8_t cmd[4] = { 0xf0 };
-			com.txrx(cmd, cmd, sizeof(cmd));
+			IspCommand cmd = { 0xf0 };
+			com.txrx(cmd.raw(), cmd.raw(), sizeof(cmd));
 			if (!(cmd[3] & 0x01)) {
 				return true;
 			}
@@ -102,9 +116,9 @@ class CommandParser {
 		TickType_t xTicksToWait = pdMS_TO_TICKS(delay);
 
 		while (xTaskCheckForTimeOut(&xTimeOut, &xTicksToWait) == pdFALSE) {
-			uint8_t cmd[4] = { cmd3, (uint8_t)(state::address >> 8), (uint8_t)state::address, 0x00 };
-			uint8_t response[4];
-			com.txrx(response, cmd, sizeof(response));
+			IspCommand cmd = { cmd3, (uint8_t)(state::address >> 8), (uint8_t)state::address, 0x00 };
+			IspCommand response;
+			com.txrx(response.raw(), cmd.raw(), sizeof(response));
 			if (response[3] == expectedVal) {
 				return true;
 			}
@@ -191,7 +205,7 @@ class CommandParser {
 		const uint8_t pollValue = dataBuf[6];
 		const uint8_t pollIndex = dataBuf[7];
 
-		const uint8_t cmd[4] = {
+		const IspCommand cmd = {
 				dataBuf[8],
 				dataBuf[9],
 				dataBuf[10],
@@ -211,9 +225,9 @@ class CommandParser {
 		vTaskDelay(pdMS_TO_TICKS(stabDelay));
 
 		for (uint32_t i = 0; i < synchLoops; i++) {
-			uint8_t response[4];
+			IspCommand response;
 			for (uint32_t i = 0; i < sizeof(cmd); i++) {
-				com.txrx(&response[i], &cmd[i], 1);
+				com.txrx(response.raw() + i, cmd.raw() + i, 1);
 				vTaskDelay(pdMS_TO_TICKS(byteDelay));
 			}
 
@@ -279,48 +293,80 @@ failed:
 		const uint8_t poll1 = dataBuf[8];
 		const uint8_t poll2 = dataBuf[9];
 		uint8_t *txData = &dataBuf[10];
+		IspCommand *currentCmd = cmdBuf;
 
-		if (!state::programmingEnabled || NumBytes > 256) {
+		if (!state::programmingEnabled || NumBytes > maxPageSize) {
 			goto failed;
 		}
 
 		// if a request to cross the 64KWord boundary was sent previously, do it now
 		if (flashAccess && (state::address & 0x80000000)) {
 			// load extended address
-			uint8_t cmd[4] = { 0x4d, 0x00, (uint8_t)(state::address >> 16), 0x00 };
-			com.txrx(cmd, cmd, sizeof(cmd));
+			IspCommand cmd = { 0x4d, 0x00, (uint8_t)(state::address >> 16), 0x00 };
+			com.txrx(cmd.raw(), cmd.raw(), sizeof(cmd));
 			// mark the load extended address as sent
 			state::address &= ~0x80000000;
 		}
 
-		for (uint16_t i = 0; i < NumBytes; i += flashAccess ? 2 : 1, state::address++) {
-			if (mode & 0x1) {
-				// page mode
+		if (mode & 0x1) { // page mode
+			// construct the commands
+			for (uint16_t i = 0; i < NumBytes; i += flashAccess ? 2 : 1, state::address++) {
 				if (flashAccess) {
-					uint8_t cmdLow[4] = { cmd1, (uint8_t)(state::address >> 8), (uint8_t)state::address, *(txData++) };
-					uint8_t cmdHigh[4] = { (uint8_t)(cmd1 | 0x08), (uint8_t)(state::address >> 8), (uint8_t)state::address, *(txData++) };
-					com.txrx(cmdLow, cmdLow, sizeof(cmdLow));
-					com.txrx(cmdHigh, cmdHigh, sizeof(cmdHigh));
+					*(currentCmd++) = { cmd1, (uint8_t)(state::address >> 8), (uint8_t)state::address, *(txData++) };
+					*(currentCmd++) = { (uint8_t)(cmd1 | 0x08), (uint8_t)(state::address >> 8), (uint8_t)state::address, *(txData++) };
 				}
 				else {
-					uint8_t cmd[4] = { cmd1, (uint8_t)(state::address >> 8), (uint8_t)state::address, *(txData++) };
-					com.txrx(cmd, cmd, sizeof(cmd));
+					*(currentCmd++) = { cmd1, (uint8_t)(state::address >> 8), (uint8_t)state::address, *(txData++) };
 				}
 			}
-			else {
-				// word mode
-				uint8_t cmd[4] = { cmd1, (uint8_t)(state::address >> 8), (uint8_t)state::address, *(txData++) };
-				uint8_t response[4];
-				com.txrx(response, cmd, sizeof(response));
+
+			// send the commands
+			com.txrx(cmdBuf[0].raw(), cmdBuf[0].raw(), NumBytes * sizeof(*cmdBuf));
+
+			// commit page if requested
+			if (mode & 0x80) {
+				uint8_t checkByte = dataBuf[10];
+				uint32_t pageAddress = state::address - (flashAccess ? NumBytes >> 1 : NumBytes);
+
+				IspCommand cmd = { cmd2, (uint8_t)(pageAddress >> 8), (uint8_t)pageAddress, 0x00 };
+				com.txrx(cmd.raw(), cmd.raw(), sizeof(cmd));
+
+				if (mode & 0x40) {
+					// page mode ready busy polling
+					if (!waitRdyBsy()) {
+						goto rdyBsyTimeout;
+					}
+				}
+				else if (mode & 0x20 && !((flashAccess && checkByte == poll1) || (!flashAccess && (checkByte == poll1 || checkByte == poll2)))) {
+					// page mode value polling (if possible)
+					if (!waitValuePolling(cmd3, checkByte, delay)) {
+						goto timeout;
+					}
+				}
+				else if (mode & 0x10) {
+					// word mode timed delay
+					vTaskDelay(pdMS_TO_TICKS(delay));
+				}
+				else {
+					// no mode provided?
+					goto failed;
+				}
+			}
+		}
+		else { // word mode
+			for (uint16_t i = 0; i < NumBytes; i += flashAccess ? 2 : 1, state::address++) {
+				IspCommand cmd = { cmd1, (uint8_t)(state::address >> 8), (uint8_t)state::address, *(txData++) };
+				uint8_t checkByte = cmd[3];
+				com.txrx(cmd.raw(), cmd.raw(), sizeof(cmd));
 				if (mode & 0x08) {
 					// word mode ready busy polling
 					if (!waitRdyBsy()) {
 						goto rdyBsyTimeout;
 					}
 				}
-				else if (mode & 0x04 && !((flashAccess && cmd[3] == poll1) || (!flashAccess && (cmd[3] == poll1 || cmd[3] == poll2)))) {
+				else if (mode & 0x04 && !((flashAccess && checkByte == poll1) || (!flashAccess && (checkByte == poll1 || checkByte == poll2)))) {
 					// word mode value polling (if possible)
-					if (!waitValuePolling(cmd3, cmd[3], delay)) {
+					if (!waitValuePolling(cmd3, checkByte, delay)) {
 						goto timeout;
 					}
 				}
@@ -333,37 +379,6 @@ failed:
 					goto failed;
 				}
 			}
-		}
-
-		if ((mode & 0x1) && (mode & 0x1)) {
-			// end of page mode, commit page
-			uint8_t checkByte = dataBuf[10];
-			uint32_t pageAddress = state::address - (flashAccess ? NumBytes >> 1 : NumBytes);
-
-			uint8_t cmd[4] = { cmd2, (uint8_t)(pageAddress >> 8), (uint8_t)pageAddress, 0x00 };
-			com.txrx(cmd, cmd, sizeof(cmd));
-
-			if (mode & 0x40) {
-				// page mode ready busy polling
-				if (!waitRdyBsy()) {
-					goto rdyBsyTimeout;
-				}
-			}
-			else if (mode & 0x20 && !((flashAccess && checkByte == poll1) || (!flashAccess && (checkByte == poll1 || checkByte == poll2)))) {
-				// page mode value polling (if possible)
-				if (!waitValuePolling(cmd3, checkByte, delay)) {
-					goto timeout;
-				}
-			}
-			else if (mode & 0x10) {
-				// word mode timed delay
-				vTaskDelay(pdMS_TO_TICKS(delay));
-			}
-			else {
-				// no mode provided?
-				goto failed;
-			}
-
 		}
 
 		// success
@@ -387,8 +402,9 @@ rdyBsyTimeout:
 		const uint16_t NumBytes = ((uint16_t)dataBuf[1] << 8) | dataBuf[2];
 		const uint8_t cmd1 = dataBuf[3];
 		uint8_t *rxData = &dataBuf[2];
+		IspCommand *currentCmd = cmdBuf;
 
-		if (!state::programmingEnabled || NumBytes > 256) {
+		if (!state::programmingEnabled || NumBytes > maxPageSize) {
 			dataBuf[1] = STATUS_CMD_FAILED;
 			header.dataLen = 2;
 			return;
@@ -397,30 +413,29 @@ rdyBsyTimeout:
 		// if a request to cross the 64KWord boundary was sent previously, do it now
 		if (flashAccess && (state::address & 0x80000000)) {
 			// load extended address
-			uint8_t cmd[4] = { 0x4d, 0x00, (uint8_t)(state::address >> 16), 0x00 };
-			com.txrx(cmd, cmd, sizeof(cmd));
+			IspCommand cmd = { 0x4d, 0x00, (uint8_t)(state::address >> 16), 0x00 };
+			com.txrx(cmd.raw(), cmd.raw(), sizeof(cmd));
 			// mark the load extended address as sent
 			state::address &= ~0x80000000;
 		}
 
+		// construct the commands
 		for (uint16_t i = 0; i < NumBytes; i += flashAccess ? 2 : 1, state::address++) {
 			if (flashAccess) {
-				uint8_t cmdLow[4] = { cmd1, (uint8_t)(state::address >> 8), (uint8_t)state::address, 0x00 };
-				uint8_t cmdHigh[4] = { (uint8_t)(cmd1 | 0x08), (uint8_t)(state::address >> 8), (uint8_t)state::address, 0x00 };
-
-				uint8_t response[4];
-				com.txrx(response, cmdLow, sizeof(response));
-				*(rxData++) = response[3];
-				com.txrx(response, cmdHigh, sizeof(response));
-				*(rxData++) = response[3];
+				*(currentCmd++) = { cmd1, (uint8_t)(state::address >> 8), (uint8_t)state::address, 0x00 };
+				*(currentCmd++) = { (uint8_t)(cmd1 | 0x08), (uint8_t)(state::address >> 8), (uint8_t)state::address, 0x00 };
 			}
 			else {
-				uint8_t cmd[4] = { cmd1, (uint8_t)(state::address >> 8), (uint8_t)state::address, 0x00 };
-
-				uint8_t response[4];
-				com.txrx(response, cmd, sizeof(response));
-				*(rxData++) = response[3];
+				*(currentCmd++) = { cmd1, (uint8_t)(state::address >> 8), (uint8_t)state::address, 0x00 };
 			}
+		}
+
+		// send the commands
+		com.txrx(cmdBuf[0].raw(), cmdBuf[0].raw(), NumBytes * sizeof(*cmdBuf));
+
+		// process the responses
+		for (uint16_t i = 0; i < NumBytes; i++) {
+			*(rxData++) = cmdBuf[i][3];
 		}
 
 		dataBuf[1] = STATUS_CMD_OK; //Status1
@@ -452,6 +467,12 @@ rdyBsyTimeout:
 
 	void cmdReadFuse() {
 		const uint8_t RetAddr = dataBuf[1];
+		const IspCommand cmd = {
+				dataBuf[2],
+				dataBuf[3],
+				dataBuf[4],
+				dataBuf[5],
+		};
 
 		if (!state::programmingEnabled || RetAddr > 4) {
 			dataBuf[1] = STATUS_CMD_FAILED;
@@ -460,8 +481,8 @@ rdyBsyTimeout:
 		}
 
 		// send command
-		uint8_t response[4];
-		com.txrx(response, &dataBuf[2], sizeof(response));
+		IspCommand response;
+		com.txrx(response.raw(), cmd.raw(), sizeof(response));
 
 		// success
 		dataBuf[1] = STATUS_CMD_OK;
