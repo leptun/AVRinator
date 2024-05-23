@@ -5,6 +5,7 @@
 #include "usb.hpp"
 #include "defs/command.h"
 #include "pavr2.hpp"
+#include <timing_precise.hpp>
 
 
 namespace isp {
@@ -73,12 +74,22 @@ class CommandParser {
 	}
 
 	void targetEnterISP() {
-		//todo enable io and assert reset
+		taskENTER_CRITICAL();
+
+		pins::ISP::T_NRESET.Write(false); //enter reset mode with undefined SCK pin, possibly high
+		delay_us_precise(1);
+		pins::setIspOutput(true); //start outputing the SPI signals, this sets the SCK to be low
+
+		// give reset a positive pulse to reset the serial programming state machine
+		pins::ISP::T_NRESET.Write(true);
+		delay_us_precise(1);
 		pins::ISP::T_NRESET.Write(false);
+
+		taskEXIT_CRITICAL();
 	}
 
 	void targetReleaseISP() {
-		//todo release io and reset
+		pins::setIspOutput(false);
 		pins::ISP::T_NRESET.Write(true);
 	}
 

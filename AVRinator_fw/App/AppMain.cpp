@@ -18,9 +18,10 @@ void Setup() {
 	LL_RCC_ClearResetFlags();
 
 	eeprom::Setup();
-	power::Setup();
 	config::resources::isp_usart.Setup();
 	config::resources::ttl_usart.Setup();
+	pins::Setup();
+	power::Setup();
 	usb::Setup();
 	isp::Setup();
 	ttl::Setup();

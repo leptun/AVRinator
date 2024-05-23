@@ -144,19 +144,6 @@ void DebugMon_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles TIM8 break interrupt.
-  */
-void TIM8_BRK_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM8_BRK_IRQn 0 */
-
-  /* USER CODE END TIM8_BRK_IRQn 0 */
-  /* USER CODE BEGIN TIM8_BRK_IRQn 1 */
-
-  /* USER CODE END TIM8_BRK_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM6 global interrupt, DAC1 and DAC3 channel underrun error interrupts.
   */
 void TIM6_DAC_IRQHandler(void)

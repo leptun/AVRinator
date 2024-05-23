@@ -21,6 +21,17 @@ struct GPIO {
 	void SetMode(uint32_t mode) const {
 		LL_GPIO_SetPinMode(port, pin, mode);
 	}
+	void SetPinOutputType(uint32_t OutputType) const {
+		LL_GPIO_SetPinOutputType(port, pin, OutputType);
+	}
+	void SetAF(uint32_t Alternate) const {
+		if (pin & 0xFF) {
+			LL_GPIO_SetAFPin_0_7(port, pin, Alternate);
+		}
+		else {
+			LL_GPIO_SetAFPin_8_15(port, pin, Alternate);
+		}
+	}
 };
 
 namespace ISP {
@@ -49,5 +60,7 @@ inline constexpr GPIO T_3V3_EN = { T_3V3_EN_GPIO_Port, T_3V3_EN_Pin };
 inline constexpr GPIO NFAULT = { NFAULT_GPIO_Port, NFAULT_Pin };
 }
 
+void Setup();
+void setIspOutput(bool val);
 
 }

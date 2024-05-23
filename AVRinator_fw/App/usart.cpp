@@ -49,6 +49,9 @@ void USART::setupTx() {
 
 void USART::startRx(uint8_t *buf, uint16_t len) {
 	lock();
+	LL_USART_DisableDirectionRx(hwdef->USARTx);
+	LL_USART_RequestRxDataFlush(hwdef->USARTx);
+
 	rxbuf = buf;
 	if (hwdef->rxDMA.DMAx) {
 		LL_DMA_SetMemoryAddress(hwdef->rxDMA.DMAx, hwdef->rxDMA.Channel, (uint32_t)buf);
@@ -59,6 +62,7 @@ void USART::startRx(uint8_t *buf, uint16_t len) {
 		// receive using UART rxne
 		LL_USART_EnableIT_RXNE(hwdef->USARTx);
 	}
+
 	LL_USART_EnableDirectionRx(hwdef->USARTx);
 	unlock();
 }
@@ -71,12 +75,10 @@ void USART::startTx(const uint8_t *buf, uint16_t len) {
 		// transmit using DMA
 		LL_DMA_SetMemoryAddress(hwdef->txDMA.DMAx, hwdef->txDMA.Channel, (uint32_t)buf);
 		LL_DMA_SetDataLength(hwdef->txDMA.DMAx, hwdef->txDMA.Channel, len);
-		LL_USART_EnableDirectionTx(hwdef->USARTx);
 		LL_DMA_EnableChannel(hwdef->txDMA.DMAx, hwdef->txDMA.Channel);
 	}
 	else {
 		// transmit using interrupts
-		LL_USART_EnableDirectionTx(hwdef->USARTx);
 		LL_USART_EnableIT_TXE(hwdef->USARTx);
 	}
 	unlock();
@@ -137,7 +139,6 @@ void USART::irq_usart() {
 	}
 	if (LL_USART_IsActiveFlag_TC(hwdef->USARTx) && LL_USART_IsEnabledIT_TC(hwdef->USARTx)) {
 		LL_USART_DisableIT_TC(hwdef->USARTx);
-		LL_USART_DisableDirectionTx(hwdef->USARTx);
 		tc_handler(xHigherPriorityTaskWoken);
 	}
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -299,7 +300,7 @@ void SyncUSART::Setup() {
 void SyncUSART::rxne_handler(BaseType_t &xHigherPriorityTaskWoken) {
 	*(rxbuf++) = LL_USART_ReceiveData8(hwdef->USARTx);
 	if (--rxndtr == 0) {
-		LL_USART_DisableDirectionRx(hwdef->USARTx);
+		LL_USART_DisableIT_RXNE(hwdef->USARTx);
 		if (task && xTaskNotifyIndexedFromISR(task, notifyIndex, FLAG_RX_COMPLETE, eSetBits, &xHigherPriorityTaskWoken) != pdPASS) {
 			Error_Handler();
 		}

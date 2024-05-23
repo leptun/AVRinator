@@ -12,6 +12,7 @@ static uint8_t target_voltage;
 
 void Setup() {
 	adc::Setup();
+	setPowerOutput(false);
 }
 
 void setTargetVoltage(uint8_t val) {

@@ -57,6 +57,7 @@
 									<listOptionValue builtIn="false" value="../glue"/>
 									<listOptionValue builtIn="false" value="../glue/FreeRTOS-Kernel"/>
 									<listOptionValue builtIn="false" value="../glue/tinyusb"/>
+									<listOptionValue builtIn="false" value="../glue/utils"/>
 								</option>
 								<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.languagestandard.991039479" name="Language standard" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.languagestandard" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.languagestandard.value.gnu18" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.otherflags.301482715" name="Other flags" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.otherflags" useByScannerDiscovery="true" valueType="stringList"/>
@@ -84,6 +85,7 @@
 									<listOptionValue builtIn="false" value="../glue"/>
 									<listOptionValue builtIn="false" value="../glue/FreeRTOS-Kernel"/>
 									<listOptionValue builtIn="false" value="../glue/tinyusb"/>
+									<listOptionValue builtIn="false" value="../glue/utils"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.option.otherflags.2007212773" name="Other flags" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.option.otherflags" useByScannerDiscovery="true" valueType="stringList">
 									<listOptionValue builtIn="false" value="-Wno-volatile"/>
@@ -211,6 +213,7 @@
 									<listOptionValue builtIn="false" value="../glue"/>
 									<listOptionValue builtIn="false" value="../glue/FreeRTOS-Kernel"/>
 									<listOptionValue builtIn="false" value="../glue/tinyusb"/>
+									<listOptionValue builtIn="false" value="../glue/utils"/>
 								</option>
 								<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.languagestandard.1830665961" name="Language standard" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.languagestandard" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.languagestandard.value.gnu18" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.otherflags.958199046" name="Other flags" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.otherflags" useByScannerDiscovery="true" valueType="stringList"/>
@@ -237,6 +240,7 @@
 									<listOptionValue builtIn="false" value="../glue"/>
 									<listOptionValue builtIn="false" value="../glue/FreeRTOS-Kernel"/>
 									<listOptionValue builtIn="false" value="../glue/tinyusb"/>
+									<listOptionValue builtIn="false" value="../glue/utils"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.option.otherflags.187837108" name="Other flags" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.option.otherflags" useByScannerDiscovery="true" valueType="stringList">
 									<listOptionValue builtIn="false" value="-Wno-volatile"/>

@@ -35,6 +35,7 @@ struct MinMax {
 	}
 };
 
+#ifdef HAL_TIM_MODULE_ENABLED
 class TIM_CHAN_PAIR {
 public:
 	TIM_TypeDef *tim;
@@ -64,7 +65,9 @@ public:
 		return IS_TIM_32B_COUNTER_INSTANCE(tim) ? 0xFFFFFFFFul : 0xFFFFul;
 	}
 };
+#endif //HAL_TIM_MODULE_ENABLED
 
+#ifdef HAL_DMA_MODULE_ENABLED
 struct LL_DMA_CHANNEL {
 	DMA_TypeDef * const DMAx;
 	const uint32_t Channel;
@@ -100,6 +103,7 @@ public:
 		*IFCR = mask << bitOffset;
 	}
 };
+#endif //HAL_DMA_MODULE_ENABLED
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
